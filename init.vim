@@ -9,7 +9,7 @@ set scrolloff=5 " don't scroll to end of screen
 set list listchars=tab:\⡀\  " small dot on indent
 set formatoptions=l
 set nofixendofline " don't add \n on eof
-set cursorline colorcolumn=102 " line of refection
+set cursorline colorcolumn=110 " line of reflection
 set wrap linebreak breakindent showbreak=\ \ ... " indent with 5 chars for differentiation
 set splitbelow splitright " sane defaults for v/h splits
 set backspace=indent,eol,start " better backspace
@@ -17,7 +17,6 @@ set nobackup " no annoying files
 set noswapfile " see above
 set noshowmode " mode is shown by the fancy line
 set conceallevel=2 " for neorg
-set nofoldenable " annoying
 
 call plug#begin()
 Plug 'nvim-lua/plenary.nvim'
@@ -85,7 +84,9 @@ nnoremap <C-p> <cmd>Telescope find_files find_command=rg,--files,--hidden,--no-i
 nnoremap <C-g> <cmd>Telescope live_grep<cr>
 nnoremap <C-n> :NvimTreeToggle<CR>
 nnoremap <C-f> :NvimTreeFindFile<CR>
-nnoremap <C-t> :tabnew<CR>
+nnoremap <leader>t :tabnew<CR>
+" duplicate json-like field and separate with a comma
+nnoremap <leader>{ ya{P%a,<CR><Esc>
 
 " config edit shortcut
 nmap <leader>vv :e ~/.config/nvim/init.vim<CR>
@@ -148,7 +149,7 @@ autocmd FileType go abbrev erre if err != nil { return err }
 autocmd FileType go abbrev errf if err != nil { return fmt.Errorf("%w", err) }
 autocmd FileType go abbrev errn if err != nil { return errors.New("") }
 autocmd BufWritePre *.go lua vim.lsp.buf.formatting()
-autocmd BufWritePre *.go lua goimports(1000)
+autocmd BufWritePre *.go lua goimports(10)
 
 " autoclose nvim tree
 autocmd BufEnter * ++nested if winnr('$') == 1 && bufname() == 'NvimTree_' . tabpagenr() | quit | endif
@@ -198,6 +199,8 @@ lua << EOF
 	require('neorg').setup{ load = {
 		["core.defaults"] = {},
 		["core.norg.concealer"] = {},
+		["core.export"] = {},
+		["core.export.markdown"] = {},
 		["core.norg.dirman"] = {
 			config = { workspaces = { work = "~/work/norg" } }
 		},
@@ -240,7 +243,9 @@ lua << EOF
 			['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
 			['<C-y>'] = cmp.config.disable,
 			['<C-e>'] = cmp.mapping({ i = cmp.mapping.abort(), c = cmp.mapping.close() }),
-			['<CR>'] = cmp.mapping.confirm({ select = false }),
+			['<CR>'] = cmp.mapping.confirm({ select = true }),
+			['<C-n>'] = cmp.mapping(cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }), { 'i', 'c' }),
+			['<C-p>'] = cmp.mapping(cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }), { 'i', 'c' }),
 		},
 		sources = cmp.config.sources({{name = 'nvim_lsp'}, {name = 'vsnip'}}, {{name = 'buffer'}})
 	})
@@ -258,6 +263,9 @@ lua << EOF
 	local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 	local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls'}
 	for _, lsp in pairs(servers) do 
-		require('lspconfig')[lsp].setup({capabilities=capabilities})
+		if lsp == 'gopls' then 
+			settings = { gopls = { gofumpt = true } }
+		end
+		require('lspconfig')[lsp].setup({ settings = settings, capabilities=capabilities})
 	end
 EOF
