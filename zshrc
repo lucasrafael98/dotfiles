@@ -1,15 +1,15 @@
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+
 if [ -e /home/jlr/.nix-profile/etc/profile.d/nix.sh ]; then . /home/jlr/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
-. "$HOME/.cargo/env"
-
-GENCOMPL_PY=python3
-
-source ~/work/env.sh
+source ~/Documents/.etc/env.sh
 source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/gitstatus.zsh
+source ~/.config/zsh/zsh-vi-mode/zsh-vi-mode.plugin.zsh
 source ~/.config/zsh/zsh-completions/zsh-completions.plugin.zsh
-source ~/.config/zsh/zsh-completion-generator/zsh-completion-generator.plugin.zsh
-source ~/.nix-profile/share/fzf/completion.zsh
-source ~/.nix-profile/share/fzf/key-bindings.zsh
+zvm_after_init_commands+=('[ -f ~/.nix-profile/share/fzf/completion.zsh ] && source ~/.nix-profile/share/fzf/completion.zsh')
+zvm_after_init_commands+=('[ -f ~/.nix-profile/share/fzf/key-bindings.zsh ] && source ~/.nix-profile/share/fzf/key-bindings.zsh')
 
 fpath=(~/.nix-profile/share/zsh/site-functions $fpath)
 HISTFILE=~/.config/zsh/history
@@ -21,26 +21,32 @@ export LESSHISTFILE=
 export FZF_DEFAULT_COMMAND="find -L -type f | rg -v .git/ | sed -E 's/^\.\///g'"
 export PGSERVICEFILE="$HOME/.config/psql/pg_service.conf"
 # https://unix.stackexchange.com/questions/187402/nix-package-manager-perl-warning-setting-locale-failed
-export LOCALE_ARCHIVE="$(nix-env --installed --no-name --out-path --query glibc-locales)/lib/locale/locale-archive"
+export LOCALE_ARCHIVE="$(nix profile list | rg glibc-locales | awk '{print $4}')/lib/locale/locale-archive"
+export DOCKER_CONFIG="$XDG_CONFIG_HOME"/docker
+export CARGO_HOME="$XDG_DATA_HOME"/cargo
+export RUSTUP_HOME="$XDG_DATA_HOME"/rustup
+export GOPATH="$XDG_DATA_HOME"/go
+export GTK2_RC_FILES="$XDG_CONFIG_HOME"/gtk-2.0/gtkrc
+export _JAVA_OPTIONS=-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME"/java
+export KDEHOME="$XDG_CONFIG_HOME"/kde
 
 autoload bashcompinit && bashcompinit
 autoload -Uz compinit
-compinit -d ~/.config/zsh/zcompdump
+compinit -d $HOME/.config/zsh/zcompdump
 zstyle :compinstall filename '/home/jlr/.zshrc'
 complete -C aws_completer aws
 eval "$(zoxide init zsh)"
+rm ~/.zcompdump
 
 # make tab completion case-insensitive
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
 unsetopt beep 
 unsetopt extendedglob
-bindkey -e
-bindkey '^[[1;5C' emacs-forward-word
-bindkey '^[[1;5D' emacs-backward-word
 
-export PATH=$PATH:~/go/bin:~/.local/bin
+export PATH=$PATH:$GOPATH/bin:~/.local/bin
 export GOROOT=$HOME/.nix-profile/share/go/
+. "$HOME/.local/share/cargo/env"
 
 fzf-git-branch() {
     git rev-parse HEAD > /dev/null 2>&1 || return
@@ -77,15 +83,14 @@ alias rm='rm -i'
 alias mv='mv -i'
 alias mkdir='mkdir -pv'
 alias ls='exa'
-alias la='exa -la@'
+alias la='exa -la'
 alias v='nvim'
 alias sv='sudo nvim'
-alias upd='sudo apt update && sudo apt full-upgrade && flatpak update && nix-channel --update && nix-env -u'
-alias cleancache='rm -rf ~/.cache' # && sudo rm -rf /var/cache'
 alias jsed="sed -E 's/^\\\"|\\\\|\\\"$//g'"
 alias jbat='bat -l json'
 alias b64e='base64 | xargs | tr -d " "'
 alias gb='fzf-git-checkout'
+alias redis="iredis --iredisrc $HOME/.config/iredis/rc"
 
 setopt PROMPT_SUBST
 # kitty doesn't make bold colors bright.

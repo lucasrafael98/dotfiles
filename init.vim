@@ -9,7 +9,7 @@ set scrolloff=5 " don't scroll to end of screen
 set list listchars=tab:\⡀\  " small dot on indent
 set formatoptions=l
 set nofixendofline " don't add \n on eof
-set cursorline colorcolumn=110 " line of reflection
+set cursorline colorcolumn=110 textwidth=110 " line of reflection
 set wrap linebreak breakindent showbreak=\ \ ... " indent with 5 chars for differentiation
 set splitbelow splitright " sane defaults for v/h splits
 set backspace=indent,eol,start " better backspace
@@ -51,7 +51,6 @@ Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'} " better syntax high
 Plug 'mg979/vim-visual-multi', {'branch': 'master'} " multi cursor like vscode
 Plug 'christoomey/vim-tmux-navigator'
 
-" Plug 'vimwiki/vimwiki' " not-org mode
 Plug 'nvim-neorg/neorg'
 Plug 'mhinz/vim-startify' " useless startup screen
 
@@ -87,6 +86,8 @@ nnoremap <C-f> :NvimTreeFindFile<CR>
 nnoremap <leader>t :tabnew<CR>
 " duplicate json-like field and separate with a comma
 nnoremap <leader>{ ya{P%a,<CR><Esc>
+" compact json field
+nnoremap <leader>} va{%i%akva{:!jq -ckJJ
 
 " config edit shortcut
 nmap <leader>vv :e ~/.config/nvim/init.vim<CR>
@@ -94,9 +95,6 @@ nmap <leader>ww :tabnew<CR>:Neorg workspace work<CR>
 
 " do change command on visual selection, repeat change when pressing .
 vnoremap // y/\V<C-R>=escape(@",'/\')<CR><CR>Ncgn
-" highlight visual selection matches
-vnoremap /. y/\V<C-R>=escape(@",'/\')<CR><CR>N
-nnoremap /. viwy/\V<C-R>=escape(@",'/\')<CR><CR>N
 " I'm too lazy to type the s///g stuff
 vnoremap /s y:%s/<C-R>"//g<Left><Left>
 
@@ -115,9 +113,6 @@ nnoremap <leader>gp :Gitsigns preview_hunk<CR>
 nnoremap <leader>gt :GoTestFunc<CR>
 nnoremap <leader>gc :GoCoverageToggle<CR>
 vnoremap <leader>ga :GoAddTags<CR>
-
-" Do not show stupid q: window
-map q: :q
 
 let g:rustfmt_autosave = 1
 let g:go_test_show_name = 1
@@ -139,17 +134,20 @@ let g:VM_maps['Find Subword Under'] = '<C-s>'
 " autoclose quickfix windows
 autocmd Filetype qf nmap <Enter>  <Enter>:ccl<CR>
 " autoformat json on save
-autocmd FileType json setlocal expandtab shiftwidth=2 tabstop=2
+autocmd FileType json setlocal expandtab shiftwidth=2 tabstop=2 
+autocmd FileType yaml setlocal expandtab shiftwidth=2 tabstop=2
 autocmd FileType json autocmd BufWritePre <buffer> %!jq . | head -c -1
 " abbreviate aws lambda in markdown
-autocmd FileType markdown abbrev awsll λ
+autocmd FileType norg abbrev awsll λ
+autocmd FileType norg nnoremap <leader>xx 0f[lrx
+autocmd FileType norg nnoremap <leader>xa }bo- [ ] 
 " iferr abbreviations for go	
 autocmd FileType go abbrev iferr  if err != nil { return nil, err }
 autocmd FileType go abbrev erre if err != nil { return err }
 autocmd FileType go abbrev errf if err != nil { return fmt.Errorf("%w", err) }
 autocmd FileType go abbrev errn if err != nil { return errors.New("") }
 autocmd BufWritePre *.go lua vim.lsp.buf.formatting()
-autocmd BufWritePre *.go lua goimports(10)
+autocmd BufWritePre *.go lua goimports(1000)
 
 " autoclose nvim tree
 autocmd BufEnter * ++nested if winnr('$') == 1 && bufname() == 'NvimTree_' . tabpagenr() | quit | endif
@@ -202,7 +200,7 @@ lua << EOF
 		["core.export"] = {},
 		["core.export.markdown"] = {},
 		["core.norg.dirman"] = {
-			config = { workspaces = { work = "~/work/norg" } }
+			config = { workspaces = { work = "~/Documents/Notes" } }
 		},
 	} }
 	require('gitsigns').setup{
