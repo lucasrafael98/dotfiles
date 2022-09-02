@@ -142,7 +142,8 @@ let g:VM_maps = {} " vim-visual-multi mapping
 let g:VM_maps['Find Under']         = '<C-s>'
 let g:VM_maps['Find Subword Under'] = '<C-s>'
 
-autocmd BufEnter *.vim norm zR
+" vim likes folding everything by default which is annoying, open all folds on entering file
+autocmd BufReadPost,FileReadPost * norm zR
 " autoclose quickfix windows
 autocmd Filetype qf nmap <Enter>  <Enter>:ccl<CR>
 " autoformat json on save
