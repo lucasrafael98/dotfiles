@@ -3,7 +3,7 @@
 	br = branch
 	ci = commit
 	cia = commit --amend
-	st = status -s
+	st = status -sM
 	bl = blame -c --date=short
 	prune-local = ! git br -v | grep \"\\[gone\\]\" | awk \"{print \\$1}\" | xargs -r git br -d
 	prune-local-force = ! git br -v | grep \"\\[gone\\]\" | awk \"{print \\$1}\" | xargs -r git br -D
