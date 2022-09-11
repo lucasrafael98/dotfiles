@@ -31,7 +31,7 @@ Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'} " better syntax high
 Plug 'nvim-treesitter/nvim-treesitter-context'
 Plug 'nvim-telescope/telescope-live-grep-args.nvim'
 Plug 'mg979/vim-visual-multi', {'branch': 'master'} " multi cursor like vscode
-Plug 'christoomey/vim-tmux-navigator'
+Plug 'knubie/vim-kitty-navigator', {'do': 'cp ./*.py ~/.config/kitty/'}
 
 " debugging
 Plug 'mfussenegger/nvim-dap'
@@ -86,9 +86,6 @@ let g:go_def_mapping_enabled = 0
 let g:go_gopls_enabled = 0
 let g:go_fmt_autosave = 0
 let g:go_imports_autosave = 0
-
-" disable git icons and folder arrows because they look terrible
-let g:nvim_tree_show_icons = {'git': 0, 'folders': 1, 'files': 1, 'folder_arrows': 0}
 
 let g:VM_maps = {} " vim-visual-multi mapping
 let g:VM_maps['Find Under']         = '<C-s>'

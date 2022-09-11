@@ -30,6 +30,8 @@ vim.opt.showmode = false -- mode is shown by the fancy line
 vim.opt.conceallevel = 2 -- for neorg
 vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
 vim.opt.termguicolors = true -- make tmux colors not terrible
+vim.opt.title = true 
+vim.opt.titlestring = [[nvim: %f]]
 
 vim.cmd('source ~/.config/nvim/old.vim')
 
@@ -144,6 +146,17 @@ require('lualine').setup {
 require('nvim-tree').setup({
 	git = {enable = true, ignore = false, timeout = 0},
 	open_on_tab = true, view = { width = 35 },
+	renderer = { 
+		highlight_git = false,
+		icons = {
+			show = {
+				git = false, -- looks terrible, disable
+				file = true,
+				folder = true, 
+				folder_arrow = false,
+			}
+		} 
+	}
 })
 require('nvim-treesitter.configs').setup({ highlight = {enable = true} })
 require("treesitter-context").setup({
