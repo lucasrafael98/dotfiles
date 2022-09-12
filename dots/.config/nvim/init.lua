@@ -36,7 +36,7 @@ vim.opt.titlestring = [[nvim: %f]]
 vim.cmd('source ~/.config/nvim/old.vim')
 
 require("gruvbox").setup({
-  contrast = "hard", -- can be "hard", "soft" or empty string
+  contrast = "hard", 
   overrides = { Normal = {} },
 })
 vim.cmd("colorscheme gruvbox")

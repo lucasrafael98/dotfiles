@@ -137,7 +137,7 @@ nmap ga :lua vim.lsp.buf.code_action()<CR>
 " debugging keymaps
 nmap <leader>gb :lua require('dapui').toggle()<CR>
 nmap <leader>b :lua require('dap').toggle_breakpoint()<CR>
-nmap <leader>gd :lua require('dap-go').debug_test()
+nmap <leader>gd :lua require('dap-go').debug_test()<CR>
 nmap <F3> :lua start_debug()<CR>
 nmap <F4> :lua stop_debug()<CR>
 nmap <F5> :lua require('dap').continue()<CR>
