@@ -38,7 +38,7 @@ Plug 'mfussenegger/nvim-dap'
 Plug 'rcarriga/nvim-dap-ui'
 Plug 'leoluz/nvim-dap-go'
 
-Plug 'nvim-neorg/neorg'
+Plug 'nvim-neorg/neorg', {'tag': '0.0.12'}
 Plug 'mhinz/vim-startify' " useless startup screen
 
 " language specifics

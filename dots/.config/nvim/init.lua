@@ -40,6 +40,7 @@ require("gruvbox").setup({
   overrides = { Normal = {} },
 })
 vim.cmd("colorscheme gruvbox")
+vim.cmd("hi Normal ctermbg=none guibg=none")
 
 local function map(mode, combo, cmd, noremap)
 	opts = {}
@@ -249,3 +250,5 @@ for _, lsp in pairs(servers) do
 	end
 	require('lspconfig')[lsp].setup({ settings = settings, capabilities=capabilities})
 end
+
+

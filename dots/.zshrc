@@ -2,16 +2,14 @@ export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
 
-if [ -e /home/jlr/.nix-profile/etc/profile.d/nix.sh ]; then . /home/jlr/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
 source ~/Documents/.etc/env.sh
 source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/gitstatus.zsh
 source ~/.config/zsh/zsh-vi-mode/zsh-vi-mode.plugin.zsh
 source ~/.config/zsh/zsh-completions/zsh-completions.plugin.zsh
-zvm_after_init_commands+=('[ -f ~/.nix-profile/share/fzf/completion.zsh ] && source ~/.nix-profile/share/fzf/completion.zsh')
-zvm_after_init_commands+=('[ -f ~/.nix-profile/share/fzf/key-bindings.zsh ] && source ~/.nix-profile/share/fzf/key-bindings.zsh')
+zvm_after_init_commands+=('[ -f ~/.config/zsh/fzf-keybinds.zsh ] && source ~/.config/zsh/fzf-keybinds.zsh')
+zvm_after_init_commands+=('[ -f ~/.config/zsh/completion.zsh ] && source ~/.config/zsh/completion.zsh')
 
-fpath=(~/.nix-profile/share/zsh/site-functions $fpath)
 HISTFILE=~/.config/zsh/history
 HISTSIZE=100000000
 SAVEHIST=100000000
@@ -20,8 +18,6 @@ export EDITOR=nvim
 export LESSHISTFILE=
 export FZF_DEFAULT_COMMAND="find -L -type f | rg -v .git/ | sed -E 's/^\.\///g'"
 export PGSERVICEFILE="$HOME/.config/psql/pg_service.conf"
-# https://unix.stackexchange.com/questions/187402/nix-package-manager-perl-warning-setting-locale-failed
-export LOCALE_ARCHIVE="$(nix profile list | rg glibc-locales | awk '{print $4}')/lib/locale/locale-archive"
 export DOCKER_CONFIG="$XDG_CONFIG_HOME"/docker
 export CARGO_HOME="$XDG_DATA_HOME"/cargo
 export RUSTUP_HOME="$XDG_DATA_HOME"/rustup
@@ -36,7 +32,6 @@ compinit -d $HOME/.config/zsh/zcompdump
 zstyle :compinstall filename '/home/jlr/.zshrc'
 complete -C aws_completer aws
 eval "$(zoxide init zsh)"
-rm ~/.zcompdump
 
 # make tab completion case-insensitive
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
@@ -44,8 +39,8 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 unsetopt beep 
 unsetopt extendedglob
 
-export PATH=$PATH:$GOPATH/bin:~/.local/bin
-export GOROOT=$HOME/.nix-profile/share/go/
+export PATH=$GOPATH/bin:~/.local/bin:~/.local/share/kafka/bin:$PATH
+export GOROOT=/usr/lib/go/
 . "$HOME/.local/share/cargo/env"
 
 fzf-git-branch() {
@@ -79,6 +74,31 @@ fzf-git-checkout() {
     fi
 }
 
+# https://github.com/romkatv/powerlevel10k/issues/1092#issuecomment-723039693
+# Display $1 in terminal title.
+function set-term-title() {
+	emulate -L zsh
+	if [[ -t 1 ]]; then
+		print -rn -- $'\e]0;'${(V)1}$'\a'
+	elif [[ -w $TTY ]]; then
+		print -rn -- $'\e]0;'${(V)1}$'\a' >$TTY
+	fi
+}
+
+# When a command is running, display it in the terminal title.
+function set-term-title-preexec() {
+	set-term-title ${(V%):-"$1: %2~"}
+}
+
+# When no command is running, display the current directory in the terminal title.
+function set-term-title-precmd() {
+	set-term-title ${(V%):-"zsh: %2~"}
+}
+
+autoload -Uz add-zsh-hook
+add-zsh-hook preexec set-term-title-preexec
+add-zsh-hook precmd set-term-title-precmd
+
 alias rm='rm -i'
 alias mv='mv -i'
 alias mkdir='mkdir -pv'
@@ -87,10 +107,10 @@ alias la='exa -la'
 alias v='nvim'
 alias sv='sudo nvim'
 alias jsed="sed -E 's/^\\\"|\\\\|\\\"$//g'"
-alias jbat='bat -l json'
 alias b64e='base64 | xargs | tr -d " "'
 alias gb='fzf-git-checkout'
 alias redis="iredis --iredisrc $HOME/.config/iredis/rc"
+alias bat='batcat'
 
 setopt PROMPT_SUBST
 # kitty doesn't make bold colors bright.
