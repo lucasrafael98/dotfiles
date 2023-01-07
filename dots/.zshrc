@@ -27,6 +27,7 @@ export _JAVA_OPTIONS=-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME"/java
 export KDEHOME="$XDG_CONFIG_HOME"/kde
 export AWS_SHARED_CREDENTIALS_FILE="$XDG_CONFIG_HOME"/aws/credentials
 export AWS_CONFIG_FILE="$XDG_CONFIG_HOME"/aws/config
+export GNUPGHOME=$XDG_DATA_HOME/gnupg
 
 autoload bashcompinit && bashcompinit
 autoload -Uz compinit

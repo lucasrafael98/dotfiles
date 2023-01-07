@@ -94,6 +94,9 @@ autocmd BufReadPost,FileReadPost norg norm zR
 " autoformat json on save
 autocmd FileType json setlocal expandtab shiftwidth=2 tabstop=2 
 autocmd FileType yaml setlocal expandtab shiftwidth=2 tabstop=2
+autocmd FileType html setlocal expandtab shiftwidth=2 tabstop=2
+autocmd FileType css setlocal expandtab shiftwidth=2 tabstop=2
+autocmd FileType toml setlocal expandtab shiftwidth=2 tabstop=2
 autocmd FileType json autocmd BufWritePre <buffer> %!jq . | head -c -1
 " abbreviate aws lambda in markdown
 autocmd FileType norg abbrev awsll λ
