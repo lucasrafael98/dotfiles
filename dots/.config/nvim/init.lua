@@ -28,19 +28,19 @@ vim.opt.backup = false -- no annoying files
 vim.opt.swapfile = false -- see above 
 vim.opt.showmode = false -- mode is shown by the fancy line
 vim.opt.conceallevel = 2 -- for neorg
+vim.opt.foldmethod = 'expr'
 vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
-vim.opt.termguicolors = true -- make tmux colors not terrible
-vim.opt.title = true 
+vim.opt.title = true
 vim.opt.titlestring = [[nvim: %f]]
 
 vim.cmd('source ~/.config/nvim/old.vim')
 
 require("gruvbox").setup({
   contrast = "hard", 
-  overrides = { Normal = {} },
+  transparent_mode = true,
+  overrides = { String = { italic = false } },
 })
 vim.cmd("colorscheme gruvbox")
-vim.cmd("hi Normal ctermbg=none guibg=none")
 
 local function map(mode, combo, cmd, noremap)
 	opts = {}
@@ -74,6 +74,15 @@ map('n', '<leader>gt', ':GoTestFunc<CR>', true)
 map('n', '<leader>gc', ':GoCoverageToggle<CR>', true)
 map('v', '<leader>ga', ':GoAddTags<CR>', true)
 
+function create_go_autofold() 
+	vim.api.nvim_create_augroup('HideImport', {clear=true})
+	vim.api.nvim_create_autocmd({"BufReadPost"}, {
+		pattern = "*.go",
+		command = "exec HideGoImports()",
+	})
+end
+create_go_autofold()
+
 -- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#neovim-imports
 function goimports(wait_ms)
 	local params = vim.lsp.util.make_range_params()
@@ -101,11 +110,7 @@ end
 
 function stop_debug() 
 	-- re-enable autofold
-	vim.api.nvim_create_augroup('HideImport', {clear=true})
-	vim.api.nvim_create_autocmd({"BufReadPost"}, {
-		pattern = "*.go",
-		command = "norm 2j zrzcgg",
-	})
+	create_go_autofold()
 	vim.api.nvim_command('set foldenable')
 	-- folds everything by setting foldenable, unfold
 	vim.api.nvim_command('norm zR')
@@ -118,7 +123,7 @@ require('nvim-web-devicons').setup()
 
 require('neorg').setup{ load = {
 	["core.defaults"] = {},
-	["core.norg.concealer"] = {},
+	["core.norg.concealer"] = { config = { folds = false } },
 	["core.export"] = {},
 	["core.export.markdown"] = {},
 	["core.norg.dirman"] = {
@@ -159,7 +164,7 @@ require('nvim-tree').setup({
 		} 
 	}
 })
-require('nvim-treesitter.configs').setup({ highlight = {enable = true} })
+require('nvim-treesitter.configs').setup({ highlight = { enable = true } })
 require("treesitter-context").setup({
 	enable = true, 
 	throttle = true, 
@@ -242,7 +247,7 @@ vim.fn.sign_define('DapBreakpointRejected',
 { text = '', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
 vim.fn.sign_define('DapStopped', {text = ''}) -- disable the gutter sign, it's useless and jittery
 
-local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls'}
 for _, lsp in pairs(servers) do 
 	if lsp == 'gopls' then 
@@ -250,5 +255,3 @@ for _, lsp in pairs(servers) do
 	end
 	require('lspconfig')[lsp].setup({ settings = settings, capabilities=capabilities})
 end
-
-

@@ -38,7 +38,7 @@ Plug 'mfussenegger/nvim-dap'
 Plug 'rcarriga/nvim-dap-ui'
 Plug 'leoluz/nvim-dap-go'
 
-Plug 'nvim-neorg/neorg', {'tag': '0.0.12'}
+Plug 'nvim-neorg/neorg'
 Plug 'mhinz/vim-startify' " useless startup screen
 
 " language specifics
@@ -50,8 +50,6 @@ call plug#end()
 " small dot on indent
 set listchars=tab:\⡀\   
 
-" make vim obey transparency in terminal
-hi Normal ctermbg=none guibg=none
 " make treesitter not turn some chars orange because it looks terrible
 hi link Delimiter none
 hi GitSignsCurrentLineBlame guifg=grey
@@ -92,9 +90,7 @@ let g:VM_maps['Find Under']         = '<C-s>'
 let g:VM_maps['Find Subword Under'] = '<C-s>'
 
 " vim likes folding everything by default which is annoying, open all folds on entering file
-autocmd BufReadPost,FileReadPost * norm zR
-" autoclose quickfix windows
-autocmd Filetype qf nmap <Enter>  <Enter>:ccl<CR>
+autocmd BufReadPost,FileReadPost norg norm zR
 " autoformat json on save
 autocmd FileType json setlocal expandtab shiftwidth=2 tabstop=2 
 autocmd FileType yaml setlocal expandtab shiftwidth=2 tabstop=2
@@ -108,12 +104,17 @@ autocmd FileType go abbrev iferr if err != nil { return nil, err }
 autocmd FileType go abbrev erre if err != nil { return err }
 autocmd FileType go abbrev errf if err != nil { return fmt.Errorf("%w", err) }
 autocmd FileType go abbrev errn if err != nil { return errors.New("") }
-autocmd BufWritePre *.go lua vim.lsp.buf.formatting()
+autocmd BufWritePre *.go lua vim.lsp.buf.format({ async = true })
 autocmd BufWritePre *.go lua goimports(1000)
-" auto-hide imports (yes i know it doesn't work if you don't have imports)
-augroup HideImport
-	autocmd BufReadPost *.go norm 2j zrzcgg
-augroup end
+" don't fold anything by default
+autocmd BufReadPost * norm zR
+
+function HideGoImports()
+	" zx is because telescope screws up some folds, need to zx to reeval folds
+	:norm zxzRgg
+	/import (
+	:norm zcgg
+endfunction
 
 " autoclose nvim tree
 autocmd BufEnter * ++nested if winnr('$') == 1 && bufname() == 'NvimTree_' . tabpagenr() | quit | endif

@@ -2,7 +2,7 @@ export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
 
-source ~/Documents/.etc/env.sh
+source ~/Documents/Etc/env.sh
 source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/gitstatus.zsh
 source ~/.config/zsh/zsh-vi-mode/zsh-vi-mode.plugin.zsh
@@ -15,7 +15,7 @@ HISTSIZE=100000000
 SAVEHIST=100000000
 WORDCHARS='*?_[]~=&;!$%^(){}<>'
 export EDITOR=nvim
-export LESSHISTFILE=
+export LESSHISTFILE=-
 export FZF_DEFAULT_COMMAND="find -L -type f | rg -v .git/ | sed -E 's/^\.\///g'"
 export PGSERVICEFILE="$HOME/.config/psql/pg_service.conf"
 export DOCKER_CONFIG="$XDG_CONFIG_HOME"/docker
@@ -25,6 +25,8 @@ export GOPATH="$XDG_DATA_HOME"/go
 export GTK2_RC_FILES="$XDG_CONFIG_HOME"/gtk-2.0/gtkrc
 export _JAVA_OPTIONS=-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME"/java
 export KDEHOME="$XDG_CONFIG_HOME"/kde
+export AWS_SHARED_CREDENTIALS_FILE="$XDG_CONFIG_HOME"/aws/credentials
+export AWS_CONFIG_FILE="$XDG_CONFIG_HOME"/aws/config
 
 autoload bashcompinit && bashcompinit
 autoload -Uz compinit
@@ -32,12 +34,14 @@ compinit -d $HOME/.config/zsh/zcompdump
 zstyle :compinstall filename '/home/jlr/.zshrc'
 complete -C aws_completer aws
 eval "$(zoxide init zsh)"
+rm -f $HOME/.zcompdump
 
 # make tab completion case-insensitive
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
 unsetopt beep 
 unsetopt extendedglob
+setopt histignorespace
 
 export PATH=$GOPATH/bin:~/.local/bin:~/.local/share/kafka/bin:$PATH
 export GOROOT=/usr/lib/go/
@@ -111,6 +115,7 @@ alias b64e='base64 | xargs | tr -d " "'
 alias gb='fzf-git-checkout'
 alias redis="iredis --iredisrc $HOME/.config/iredis/rc"
 alias bat='batcat'
+alias sudo='doas'
 
 setopt PROMPT_SUBST
 # kitty doesn't make bold colors bright.
