@@ -47,33 +47,9 @@ Plug 'buoto/gotests-vim'
 Plug 'rust-lang/rust.vim'
 call plug#end()
 
-" small dot on indent
-set listchars=tab:\⡀\   
-
 " make treesitter not turn some chars orange because it looks terrible
 hi link Delimiter none
 hi GitSignsCurrentLineBlame guifg=grey
-
-" duplicate json-like field and separate with a comma
-nnoremap <leader>{ ya{P%a,<CR><Esc>
-" compact json field
-nnoremap <leader>} va{%i%akva{:!jq -c<CR>kJJ
-
-" config edit shortcut
-nmap <leader>vv :e ~/.config/nvim/init.lua<CR>
-nmap <leader>vl :e ~/.config/nvim/old.vim<CR>
-nmap <leader>ww :tabnew<CR>:Neorg workspace work<CR>
-
-" do change command on visual selection, repeat change when pressing .
-vnoremap // y/\V<C-R>=escape(@",'/\')<CR><CR>Ncgn
-" I'm too lazy to type the s///g stuff
-vnoremap /s y:%s/<C-R>"//g<Left><Left>
-
-" yank to OS clipboard, slightly less clunky
-map <leader>y "+y
-" paste last yanks
-nmap <leader>p "0p
-nmap <leader>P "0P
 
 let g:rustfmt_autosave = 1
 let g:go_test_show_name = 1
@@ -125,32 +101,3 @@ autocmd BufEnter * ++nested if winnr('$') == 1 && bufname() == 'NvimTree_' . tab
 " trigger `autoread` when files changes on disk
 set autoread
 autocmd FocusGained,BufEnter,CursorHold,CursorHoldI * if mode() != 'c' | checktime | endif
-
-" open error float
-nmap <leader>E :lua vim.diagnostic.open_float(nil, {focus=false})<CR>
-nmap gD :Telescope lsp_document_symbols<CR>
-nnoremap gd :Telescope lsp_definitions<CR>
-nmap gy :Telescope lsp_type_definitions<CR>
-nmap gi :Telescope lsp_implementations<CR>
-nmap gE :Telescope diagnostics<CR>
-nmap gr :Telescope lsp_references<CR>
-nmap ge :lua vim.lsp.buf.rename()<CR>
-nmap K :lua vim.lsp.buf.hover()<CR>
-nmap ga :lua vim.lsp.buf.code_action()<CR>
-
-" debugging keymaps
-nmap <leader>gb :lua require('dapui').toggle()<CR>
-nmap <leader>b :lua require('dap').toggle_breakpoint()<CR>
-nmap <leader>gd :lua require('dap-go').debug_test()<CR>
-nmap <F3> :lua start_debug()<CR>
-nmap <F4> :lua stop_debug()<CR>
-nmap <F5> :lua require('dap').continue()<CR>
-nmap <F10> :lua require('dap').step_over()<CR>
-nmap <F11> :lua require('dap').step_into()<CR>
-nmap <F12> :lua require('dap').step_out()<CR>
-
-" resize splits
-map <A-l> 5<C-W>>
-map <A-h> 5<C-W><
-map <A-k> 5<C-W>+
-map <A-j> 5<C-W>-

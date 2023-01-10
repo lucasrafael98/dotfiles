@@ -32,6 +32,7 @@ vim.opt.foldmethod = 'expr'
 vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
 vim.opt.title = true
 vim.opt.titlestring = [[nvim: %f]]
+vim.opt.listchars = { space = ' ', tab = '⡀ ' }
 
 vim.cmd('source ~/.config/nvim/old.vim')
 
@@ -50,6 +51,7 @@ local function map(mode, combo, cmd, noremap)
 	vim.api.nvim_set_keymap(mode, combo, cmd, opts)
 end
 
+-- faster split navigation
 map('', '<C-h>', '<C-w>h', false)
 map('', '<C-j>', '<C-w>j', false)
 map('', '<C-k>', '<C-w>k', false)
@@ -64,7 +66,18 @@ map('n', '<leader>t', ':tabnew<CR>', true)
 -- enable folding but don't close any folds
 map('n', '<leader>zr', ':set foldmethod=expr<CR>zR', true)
 
-map('n', 'Y', 'y$', true)
+map('n', 'Y', 'y$', false)
+map('', '<leader>y', '+"y', false) -- yank to OS clipboard
+map('n', '<leader>p', '"0p', false) -- paste last yank
+map('n', '<leader>P', '"0P', false) -- same as above
+-- duplicate json-like field and separate with a comma
+map('n', '<leader>{', 'ya{P%a,<CR><Esc>', true)
+-- compact json field
+map('n', '<leader>}', 'va{<Esc>%i<CR><Esc>%a<CR><ESC>kva{:!jq -c<CR>kJJ', true)
+
+map('n', '<leader>vv', ':e ~/.config/nvim/init.lua<CR>', true)
+map('n', '<leader>vl', ':e ~/.config/nvim/old.vim<CR>', true)
+map('n', '<leader>ww', ':tabnew<CR>:Neorg workspace work<CR>', true)
 
 -- git status with lower height
 map('n', '<leader>gg', ':Git<CR>15<C-W>-', true)
@@ -73,6 +86,39 @@ map('n', '<leader>gp', ':Gitsigns preview_hunk<CR>', true)
 map('n', '<leader>gt', ':GoTestFunc<CR>', true)
 map('n', '<leader>gc', ':GoCoverageToggle<CR>', true)
 map('v', '<leader>ga', ':GoAddTags<CR>', true)
+
+-- lsp
+map('n', '<leader>E', ':lua vim.diagnostic.open_float(nil, {focus=false})<CR>', true)
+map('n', 'gD', ':Telescope lsp_document_symbols<CRmap()>', true)
+map('n', 'gd', ':Telescope lsp_definitions<CR>', true)
+map('n', 'gy', ':Telescope lsp_type_definitions<CR>', true)
+map('n', 'gi', ':Telescope lsp_implementations<CR>', true)
+map('n', 'gE', ':Telescope diagnostics<CR>', true)
+map('n', 'gr', ':Telescope lsp_references<CR>', true)
+map('n', 'ge', ':lua vim.lsp.buf.rename()<CR>', true)
+map('n', 'K', ':lua vim.lsp.buf.hover()<CR>', true)
+map('n', 'ga', ':lua vim.lsp.buf.code_action()<CR>', true)
+
+-- debugging 
+map('n', '<leader>gb', ':lua require("dapui").toggle()<CR>', true)
+map('n', '<leader>b', ':lua require("dap").toggle_breakpoint()<CR>', true)
+map('n', '<leader>gd', ':lua require("dap-go").debug_test()<CR>', true)
+map('n', '<F3>', ':lua start_debug()<CR>', true)
+map('n', '<F4>', ':lua stop_debug()<CR>', true)
+map('n', '<F5>', ':lua require("dap").continue()<CR>', true)
+map('n', '<F10>', ':lua require("dap").step_over()<CR>', true)
+map('n', '<F11>', ':lua require("dap").step_into()<CR>', true)
+map('n', '<F12>', ':lua require("dap").step_out()<CR>', true)
+
+-- split resize
+map('', '<A-l>', '5<C-W>>', true)
+map('', '<A-h>', '5<C-W><', true)
+map('', '<A-k>', '5<C-W>+', true)
+map('', '<A-j>', '5<C-W>-', true)
+-- do change command on visual selection, repeat change when pressing .
+map('v', '//', 'y/\\V<C-R>=escape(@",\'/\\\')<CR><CR>Ncgn', true)
+-- I'm too lazy to type the s///g stuff
+map('v', '/s', 'y:%s/<C-R>"//g<Left><Left>', true)
 
 function create_go_autofold() 
 	vim.api.nvim_create_augroup('HideImport', {clear=true})
@@ -171,15 +217,7 @@ require("treesitter-context").setup({
 	max_lines = 0,
 	show_all_context = show_all_context,
 	patterns = {
-		default = {
-			"function",
-			"method",
-			"for",
-			"while",
-			"if",
-			"switch",
-			"case",
-		},
+		default = { "function", "method", "for", "while", "if", "switch", "case" }
 	},
 })
 
