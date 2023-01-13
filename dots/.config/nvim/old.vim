@@ -29,6 +29,7 @@ Plug 'neovim/nvim-lspconfig'
 
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'} " better syntax highlight
 Plug 'nvim-treesitter/nvim-treesitter-context'
+Plug 'nvim-treesitter/playground'
 Plug 'nvim-telescope/telescope-live-grep-args.nvim'
 Plug 'mg979/vim-visual-multi', {'branch': 'master'} " multi cursor like vscode
 Plug 'knubie/vim-kitty-navigator', {'do': 'cp ./*.py ~/.config/kitty/'}
@@ -68,11 +69,6 @@ let g:VM_maps['Find Subword Under'] = '<C-s>'
 " vim likes folding everything by default which is annoying, open all folds on entering file
 autocmd BufReadPost,FileReadPost norg norm zR
 " autoformat json on save
-autocmd FileType json setlocal expandtab shiftwidth=2 tabstop=2 
-autocmd FileType yaml setlocal expandtab shiftwidth=2 tabstop=2
-autocmd FileType html setlocal expandtab shiftwidth=2 tabstop=2
-autocmd FileType css setlocal expandtab shiftwidth=2 tabstop=2
-autocmd FileType toml setlocal expandtab shiftwidth=2 tabstop=2
 autocmd FileType json autocmd BufWritePre <buffer> %!jq . | head -c -1
 " abbreviate aws lambda in markdown
 autocmd FileType norg abbrev awsll λ

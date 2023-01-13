@@ -1,3 +1,5 @@
+----
+-- Vim options
 vim.g.mapleader = ' '
 
 vim.opt.mouse = 'a'
@@ -33,16 +35,13 @@ vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
 vim.opt.title = true
 vim.opt.titlestring = [[nvim: %f]]
 vim.opt.listchars = { space = ' ', tab = '⡀ ' }
+----
 
+-- Plugins and some autocmds
 vim.cmd('source ~/.config/nvim/old.vim')
 
-require("gruvbox").setup({
-  contrast = "hard", 
-  transparent_mode = true,
-  overrides = { String = { italic = false } },
-})
-vim.cmd("colorscheme gruvbox")
-
+----
+-- Key Mapping
 local function map(mode, combo, cmd, noremap)
 	opts = {}
 	if noremap then 
@@ -50,46 +49,41 @@ local function map(mode, combo, cmd, noremap)
 	end
 	vim.api.nvim_set_keymap(mode, combo, cmd, opts)
 end
-
--- faster split navigation
-map('', '<C-h>', '<C-w>h', false)
-map('', '<C-j>', '<C-w>j', false)
-map('', '<C-k>', '<C-w>k', false)
-map('', '<C-l>', '<C-w>l', false)
-
-map('n', '<C-p>', ':Telescope find_files find_command=rg,--files,--hidden,--no-ignore,-g,!.git<cr>', true)
-map('n', '<C-g>', ':lua require("telescope").extensions.live_grep_args.live_grep_args()<CR>', true)
-map('n', '<C-n>', ':NvimTreeToggle<CR>', true)
-map('n', '<C-f>', ':NvimTreeFindFile<CR>', true)
-map('n', '<leader>t', ':tabnew<CR>', true)
-
--- enable folding but don't close any folds
-map('n', '<leader>zr', ':set foldmethod=expr<CR>zR', true)
-
-map('n', 'Y', 'y$', false)
-map('', '<leader>y', '+"y', false) -- yank to OS clipboard
+-- yank and paste
+map('n', 'Y', 'y$', false) -- replicate D and C
+map('', '<leader>y', '"+y', false) -- yank to OS clipboard
 map('n', '<leader>p', '"0p', false) -- paste last yank
 map('n', '<leader>P', '"0P', false) -- same as above
+-- weird black magic
+-- do change command on visual selection, repeat change when pressing .
+map('v', '//', 'y/\\V<C-R>=escape(@",\'/\\\')<CR><CR>Ncgn', true)
+-- I'm too lazy to type the s///g stuff
+map('v', '/s', 'y:%s/<C-R>"//g<Left><Left>', true)
 -- duplicate json-like field and separate with a comma
 map('n', '<leader>{', 'ya{P%a,<CR><Esc>', true)
 -- compact json field
 map('n', '<leader>}', 'va{<Esc>%i<CR><Esc>%a<CR><ESC>kva{:!jq -c<CR>kJJ', true)
-
+--
+-- quickly access files
 map('n', '<leader>vv', ':e ~/.config/nvim/init.lua<CR>', true)
 map('n', '<leader>vl', ':e ~/.config/nvim/old.vim<CR>', true)
 map('n', '<leader>ww', ':tabnew<CR>:Neorg workspace work<CR>', true)
-
--- git status with lower height
-map('n', '<leader>gg', ':Git<CR>15<C-W>-', true)
+--misc
+map('n', '<leader>gg', ':Git<CR>15<C-W>-', true) -- git status, lower height
 map('n', '<leader>gv', ':Gvdiffsplit<CR>', true)
 map('n', '<leader>gp', ':Gitsigns preview_hunk<CR>', true)
 map('n', '<leader>gt', ':GoTestFunc<CR>', true)
 map('n', '<leader>gc', ':GoCoverageToggle<CR>', true)
 map('v', '<leader>ga', ':GoAddTags<CR>', true)
-
+map('n', '<C-p>', ':Telescope find_files find_command=rg,--files,--hidden,--no-ignore,-g,!.git<cr>', true)
+map('n', '<C-g>', ':lua require("telescope").extensions.live_grep_args.live_grep_args()<CR>', true)
+map('n', '<C-n>', ':NvimTreeToggle<CR>', true)
+map('n', '<C-f>', ':NvimTreeFindFile<CR>', true)
+map('n', '<leader>t', ':tabnew<CR>', true)
+map('n', '<leader>zr', ':set foldmethod=expr<CR>zR', true) -- enable folding but don't close any folds
 -- lsp
 map('n', '<leader>E', ':lua vim.diagnostic.open_float(nil, {focus=false})<CR>', true)
-map('n', 'gD', ':Telescope lsp_document_symbols<CRmap()>', true)
+map('n', 'gD', ':Telescope lsp_document_symbols()<CR>', true)
 map('n', 'gd', ':Telescope lsp_definitions<CR>', true)
 map('n', 'gy', ':Telescope lsp_type_definitions<CR>', true)
 map('n', 'gi', ':Telescope lsp_implementations<CR>', true)
@@ -98,7 +92,6 @@ map('n', 'gr', ':Telescope lsp_references<CR>', true)
 map('n', 'ge', ':lua vim.lsp.buf.rename()<CR>', true)
 map('n', 'K', ':lua vim.lsp.buf.hover()<CR>', true)
 map('n', 'ga', ':lua vim.lsp.buf.code_action()<CR>', true)
-
 -- debugging 
 map('n', '<leader>gb', ':lua require("dapui").toggle()<CR>', true)
 map('n', '<leader>b', ':lua require("dap").toggle_breakpoint()<CR>', true)
@@ -109,61 +102,20 @@ map('n', '<F5>', ':lua require("dap").continue()<CR>', true)
 map('n', '<F10>', ':lua require("dap").step_over()<CR>', true)
 map('n', '<F11>', ':lua require("dap").step_into()<CR>', true)
 map('n', '<F12>', ':lua require("dap").step_out()<CR>', true)
-
 -- split resize
 map('', '<A-l>', '5<C-W>>', true)
 map('', '<A-h>', '5<C-W><', true)
 map('', '<A-k>', '5<C-W>+', true)
 map('', '<A-j>', '5<C-W>-', true)
--- do change command on visual selection, repeat change when pressing .
-map('v', '//', 'y/\\V<C-R>=escape(@",\'/\\\')<CR><CR>Ncgn', true)
--- I'm too lazy to type the s///g stuff
-map('v', '/s', 'y:%s/<C-R>"//g<Left><Left>', true)
+-- faster split navigation
+map('', '<C-h>', '<C-w>h', false)
+map('', '<C-j>', '<C-w>j', false)
+map('', '<C-k>', '<C-w>k', false)
+map('', '<C-l>', '<C-w>l', false)
+----
 
-function create_go_autofold() 
-	vim.api.nvim_create_augroup('HideImport', {clear=true})
-	vim.api.nvim_create_autocmd({"BufReadPost"}, {
-		pattern = "*.go",
-		command = "exec HideGoImports()",
-	})
-end
-create_go_autofold()
-
--- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#neovim-imports
-function goimports(wait_ms)
-	local params = vim.lsp.util.make_range_params()
-	params.context = {only = {"source.organizeImports"}}
-	local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, wait_ms)
-	for _, res in pairs(result or {}) do
-		for _, r in pairs(res.result or {}) do
-			if r.edit then
-				vim.lsp.util.apply_workspace_edit(r.edit, "UTF-8")
-			else
-				vim.lsp.buf.execute_command(r.command)
-			end
-		end
-	end
-end
-
-function start_debug() 
-	-- disable folding and autofold, otherwise errors occur
-	vim.api.nvim_create_augroup('HideImport', {clear=true})
-	vim.api.nvim_command('set nofoldenable')
-	require('dap.ext.vscode').load_launchjs('.vscode/launch.json')
-	require('dap').continue()
-	require('dapui').open()
-end
-
-function stop_debug() 
-	-- re-enable autofold
-	create_go_autofold()
-	vim.api.nvim_command('set foldenable')
-	-- folds everything by setting foldenable, unfold
-	vim.api.nvim_command('norm zR')
-	require('dap').close()
-	require('dapui').close()
-end
-
+----
+-- Packages/Misc
 require('nvim-autopairs').setup()
 require('nvim-web-devicons').setup()
 
@@ -226,29 +178,7 @@ require('telescope').setup({ defaults = { layout_config = {
 }}})
 require("telescope").load_extension("live_grep_args")
 
-require("dapui").setup({
-	mappings = {
-		expand = "o",
-		open = "g",
-	},
-	layouts = {
-		{
-			elements = {
-				{ id = "scopes", size = 0.8 },
-				{ id = "breakpoints", size = 0.2},
-			},
-			size = 40, 
-			position = "left",
-		},
-		{
-			elements = { "repl" },
-			size = 0.2,
-			position = "bottom",
-		},
-	},
-})
-require('dap-go').setup()
-
+-- Auto-complete
 local cmp_autopairs = require('nvim-autopairs.completion.cmp')
 local cmp = require('cmp')
 cmp.setup({
@@ -275,16 +205,10 @@ vim.diagnostic.config({
 	signs = true,
 	underline = true,
 })
+----
 
--- breakpoint signs
-vim.fn.sign_define('DapBreakpoint', 
-{ text = '', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
-vim.fn.sign_define('DapBreakpointCondition',
-{ text = 'ﳁ', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
-vim.fn.sign_define('DapBreakpointRejected',
-{ text = '', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
-vim.fn.sign_define('DapStopped', {text = ''}) -- disable the gutter sign, it's useless and jittery
-
+----
+-- LSP Setup
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls'}
 for _, lsp in pairs(servers) do 
@@ -293,3 +217,103 @@ for _, lsp in pairs(servers) do
 	end
 	require('lspconfig')[lsp].setup({ settings = settings, capabilities=capabilities})
 end
+----
+
+----
+-- Go stuff
+-- autocmd to fold imports when entering a file
+function create_go_autofold() 
+	vim.api.nvim_create_augroup('HideImport', {clear=true})
+	vim.api.nvim_create_autocmd({"BufReadPost"}, {
+		pattern = "*.go",
+		command = "exec HideGoImports()",
+	})
+end
+create_go_autofold()
+-- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#neovim-imports
+function goimports(wait_ms)
+	local params = vim.lsp.util.make_range_params()
+	params.context = {only = {"source.organizeImports"}}
+	local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, wait_ms)
+	for _, res in pairs(result or {}) do
+		for _, r in pairs(res.result or {}) do
+			if r.edit then
+				vim.lsp.util.apply_workspace_edit(r.edit, "UTF-8")
+			else
+				vim.lsp.buf.execute_command(r.command)
+			end
+		end
+	end
+end
+----
+
+----
+-- Debugging
+function start_debug() 
+	-- disable folding and autofold, otherwise errors occur
+	vim.api.nvim_create_augroup('HideImport', {clear=true})
+	vim.api.nvim_command('set nofoldenable')
+	require('dap.ext.vscode').load_launchjs('.vscode/launch.json')
+	require('dap').continue()
+	require('dapui').open()
+end
+function stop_debug() 
+	-- re-enable autofold
+	create_go_autofold()
+	vim.api.nvim_command('set foldenable')
+	-- folds everything by setting foldenable, unfold
+	vim.api.nvim_command('norm zR')
+	require('dap').close()
+	require('dapui').close()
+end
+-- breakpoint signs
+vim.fn.sign_define('DapBreakpoint', 
+{ text = '', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
+vim.fn.sign_define('DapBreakpointCondition',
+{ text = 'ﳁ', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
+vim.fn.sign_define('DapBreakpointRejected',
+{ text = '', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
+vim.fn.sign_define('DapStopped', {text = ''}) -- disable the gutter sign, it's useless and jittery
+-- dap ui
+require("dapui").setup({
+	mappings = { expand = "o", open = "g" },
+	layouts = {
+		{
+			elements = {
+				{ id = "scopes", size = 0.8 },
+				{ id = "breakpoints", size = 0.2},
+			},
+			size = 40, position = "left",
+		},
+		{
+			elements = { "repl" },
+			size = 0.2,
+			position = "bottom",
+		},
+	},
+})
+require('dap-go').setup()
+----
+
+----
+-- Autocmds
+-- set local buffer to use two space indent in below langs
+for _, lang in pairs({"json", "yaml", "toml", "html", "css"}) do 
+	vim.api.nvim_create_autocmd({"FileType"},{
+		pattern = lang,
+		callback = function() 
+			vim.opt_local.expandtab = true 
+			vim.opt_local.shiftwidth = 2 
+			vim.opt_local.tabstop = 2
+		end
+	})
+end
+----
+
+-- Colour
+require("gruvbox").setup({
+  contrast = "hard", 
+  transparent_mode = true,
+  overrides = { String = { italic = false } },
+})
+vim.cmd.colorscheme("gruvbox")

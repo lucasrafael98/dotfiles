@@ -1,0 +1,2 @@
+deploy: 
+	@stow dots -Dt ~
