@@ -28,3 +28,8 @@
 ((raw_string_literal) @html
 	(#contains? @html "<!doctype html>" "</")
 	(#offset! @html 0 1 0 -1))
+
+; get json (terrible query i know)
+((raw_string_literal) @json 
+      (#contains? @json "{") 
+      (#offset! @json 0 1 0 -1))
