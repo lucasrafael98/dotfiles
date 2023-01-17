@@ -29,9 +29,9 @@ Plug 'neovim/nvim-lspconfig'
 
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'} " better syntax highlight
 Plug 'nvim-treesitter/nvim-treesitter-context'
+Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 Plug 'nvim-treesitter/playground'
 Plug 'nvim-telescope/telescope-live-grep-args.nvim'
-Plug 'mg979/vim-visual-multi', {'branch': 'master'} " multi cursor like vscode
 Plug 'knubie/vim-kitty-navigator', {'do': 'cp ./*.py ~/.config/kitty/'}
 
 " debugging
@@ -48,10 +48,6 @@ Plug 'buoto/gotests-vim'
 Plug 'rust-lang/rust.vim'
 call plug#end()
 
-" make treesitter not turn some chars orange because it looks terrible
-hi link Delimiter none
-hi GitSignsCurrentLineBlame guifg=grey
-
 let g:rustfmt_autosave = 1
 let g:go_test_show_name = 1
 let g:go_doc_keywordprg_enabled = 0
@@ -61,35 +57,6 @@ let g:go_def_mapping_enabled = 0
 let g:go_gopls_enabled = 0
 let g:go_fmt_autosave = 0
 let g:go_imports_autosave = 0
-
-let g:VM_maps = {} " vim-visual-multi mapping
-let g:VM_maps['Find Under']         = '<C-s>'
-let g:VM_maps['Find Subword Under'] = '<C-s>'
-
-" vim likes folding everything by default which is annoying, open all folds on entering file
-autocmd BufReadPost,FileReadPost norg norm zR
-" autoformat json on save
-autocmd FileType json autocmd BufWritePre <buffer> %!jq . | head -c -1
-" abbreviate aws lambda in markdown
-autocmd FileType norg abbrev awsll λ
-autocmd FileType norg nnoremap <leader>xx 0f[lrx
-autocmd FileType norg nnoremap <leader>xa }bo- [ ] 
-" iferr abbreviations for go	
-autocmd FileType go abbrev iferr if err != nil { return nil, err }
-autocmd FileType go abbrev erre if err != nil { return err }
-autocmd FileType go abbrev errf if err != nil { return fmt.Errorf("%w", err) }
-autocmd FileType go abbrev errn if err != nil { return errors.New("") }
-autocmd BufWritePre *.go lua vim.lsp.buf.format({ async = true })
-autocmd BufWritePre *.go lua goimports(1000)
-" don't fold anything by default
-autocmd BufReadPost * norm zR
-
-function HideGoImports()
-	" zx is because telescope screws up some folds, need to zx to reeval folds
-	:norm zxzRgg
-	/import (
-	:norm zcgg
-endfunction
 
 " autoclose nvim tree
 autocmd BufEnter * ++nested if winnr('$') == 1 && bufname() == 'NvimTree_' . tabpagenr() | quit | endif

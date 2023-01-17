@@ -31,7 +31,7 @@ vim.opt.swapfile = false -- see above
 vim.opt.showmode = false -- mode is shown by the fancy line
 vim.opt.conceallevel = 2 -- for neorg
 vim.opt.foldmethod = 'expr'
-vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
+vim.opt.updatetime = 20
 vim.opt.title = true
 vim.opt.titlestring = [[nvim: %f]]
 vim.opt.listchars = { space = ' ', tab = '⡀ ' }
@@ -162,7 +162,27 @@ require('nvim-tree').setup({
 		} 
 	}
 })
-require('nvim-treesitter.configs').setup({ highlight = { enable = true } })
+require('nvim-treesitter.configs').setup({
+	ensure_installed = {'cpp', 'go', 'lua', 'query', 'scheme', 'sql', 'yaml', 'json', 'html', 'css', 'rust', 'vim'},
+	highlight = { enable = true },
+	textobjects = {
+		select = {
+			enable = true,
+			lookahead = true,
+			keymaps = {
+				['aa'] = '@parameter.outer',
+				['ia'] = '@parameter.inner',
+				['af'] = '@function.outer',
+				['if'] = '@function.inner',
+			},
+		},
+		swap = {
+			enable = true,
+			swap_next = { ['<leader>a'] = '@parameter.inner' },
+			swap_previous = { ['<leader>A'] = '@parameter.inner' },
+		}
+	}
+})
 require("treesitter-context").setup({
 	enable = true, 
 	throttle = true, 
@@ -221,15 +241,6 @@ end
 
 ----
 -- Go stuff
--- autocmd to fold imports when entering a file
-function create_go_autofold() 
-	vim.api.nvim_create_augroup('HideImport', {clear=true})
-	vim.api.nvim_create_autocmd({"BufReadPost"}, {
-		pattern = "*.go",
-		command = "exec HideGoImports()",
-	})
-end
-create_go_autofold()
 -- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#neovim-imports
 function goimports(wait_ms)
 	local params = vim.lsp.util.make_range_params()
@@ -308,12 +319,79 @@ for _, lang in pairs({"json", "yaml", "toml", "html", "css"}) do
 		end
 	})
 end
+
+-- don't fold everything by default
+vim.api.nvim_create_autocmd('BufReadPost,FileReadPost',{
+	callback = function() vim.cmd("norm zR") end,
+	pattern = '*',
+})
+
+-- format json on save - TODO: doesn't work on proper lua
+vim.cmd("autocmd FileType json autocmd BufWritePre <buffer> %!jq . | head -c -1")
+
+vim.api.nvim_create_autocmd('FileType',{
+	callback = function()
+		vim.cmd("abbrev awsll λ")
+		vim.cmd("abbrev nnoremap <leader>xx 0f[lrx")
+		vim.cmd("abbrev nnoremap <leader>xa }bo- [ ] ")
+	end,
+	pattern = 'norg',
+})
+
+-- iferr abbreviations, folding
+vim.api.nvim_create_autocmd('FileType',{
+	callback = function() 
+		vim.cmd("abbrev iferr if err != nil { return nil, err }")
+		vim.cmd("abbrev erre if err != nil { return err }")
+		vim.cmd("abbrev errf if err != nil { return fmt.Errorf(\"%w\", err) }")
+		vim.cmd("abbrev errn if err != nil { return errors.New(\"\") }")
+		vim.opt_local.foldexpr = 'nvim_treesitter#foldexpr()'
+	end,
+	pattern = 'go',
+})
+-- format + goimports go on save
+vim.api.nvim_create_autocmd('BufWritePre', {
+	callback = function()
+		vim.lsp.buf.format({ async = true })
+		goimports(1000)
+	end,
+	pattern = '*.go'
+})
+-- autocmd to fold imports when entering a file
+function create_go_autofold() 
+	vim.api.nvim_create_augroup('HideImport', {clear=true})
+	vim.api.nvim_create_autocmd({"BufReadPost"}, {
+		pattern = "*.go",
+		callback = function() 
+			-- zx is because telescope screws up some folds
+			vim.cmd("norm zxzRgg")
+			vim.cmd("/import (")
+			vim.cmd("norm zcgg")
+		end,
+	})
+end
+create_go_autofold()
+
+-- highlight on yank
+vim.api.nvim_create_autocmd('TextYankPost', {
+  callback = function()
+    vim.highlight.on_yank()
+  end,
+  group = vim.api.nvim_create_augroup('YankHighlight', { clear = true }),
+  pattern = '*',
+})
 ----
 
 -- Colour
 require("gruvbox").setup({
   contrast = "hard", 
   transparent_mode = true,
-  overrides = { String = { italic = false } },
+  overrides = { 
+	  String = { italic = false },
+	  Operator = { italic = false },
+  },
 })
 vim.cmd.colorscheme("gruvbox")
+-- make treesitter not turn some chars orange because it looks terrible
+vim.cmd("hi link Delimiter none")
+vim.cmd("hi GitSignsCurrentLineBlame guifg=grey")
