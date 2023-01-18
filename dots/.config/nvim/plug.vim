@@ -19,8 +19,8 @@ Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-cmdline'
 Plug 'hrsh7th/nvim-cmp'
-Plug 'hrsh7th/cmp-vsnip'
-Plug 'hrsh7th/vim-vsnip'
+Plug 'L3MON4D3/LuaSnip'
+Plug 'saadparwaiz1/cmp_luasnip'
 Plug 'ray-x/lsp_signature.nvim' " shows definition when filling up func arguments
 
 Plug 'nvim-telescope/telescope.nvim' " fuzzy finder for several things 
@@ -44,7 +44,7 @@ Plug 'mhinz/vim-startify' " useless startup screen
 
 " language specifics
 Plug 'fatih/vim-go'
-Plug 'buoto/gotests-vim'
+Plug 'olexsmir/gopher.nvim'
 Plug 'rust-lang/rust.vim'
 call plug#end()
 

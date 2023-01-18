@@ -37,8 +37,8 @@ vim.opt.titlestring = [[nvim: %f]]
 vim.opt.listchars = { space = ' ', tab = '⡀ ' }
 ----
 
--- Plugins and some autocmds
-vim.cmd('source ~/.config/nvim/old.vim')
+-- Mostly plugins
+vim.cmd('source ~/.config/nvim/plug.vim')
 
 ----
 -- Key Mapping
@@ -66,7 +66,7 @@ map('n', '<leader>}', 'va{<Esc>%i<CR><Esc>%a<CR><ESC>kva{:!jq -c<CR>kJJ', true)
 --
 -- quickly access files
 map('n', '<leader>vv', ':e ~/.config/nvim/init.lua<CR>', true)
-map('n', '<leader>vl', ':e ~/.config/nvim/old.vim<CR>', true)
+map('n', '<leader>vl', ':e ~/.config/nvim/plug.vim<CR>', true)
 map('n', '<leader>ww', ':tabnew<CR>:Neorg workspace work<CR>', true)
 --misc
 map('n', '<leader>gg', ':Git<CR>15<C-W>-', true) -- git status, lower height
@@ -83,7 +83,7 @@ map('n', '<leader>t', ':tabnew<CR>', true)
 map('n', '<leader>zr', ':set foldmethod=expr<CR>zR', true) -- enable folding but don't close any folds
 -- lsp
 map('n', '<leader>E', ':lua vim.diagnostic.open_float(nil, {focus=false})<CR>', true)
-map('n', 'gD', ':Telescope lsp_document_symbols()<CR>', true)
+map('n', 'gD', ':Telescope lsp_document_symbols<CR>', true)
 map('n', 'gd', ':Telescope lsp_definitions<CR>', true)
 map('n', 'gy', ':Telescope lsp_type_definitions<CR>', true)
 map('n', 'gi', ':Telescope lsp_implementations<CR>', true)
@@ -202,7 +202,7 @@ require("telescope").load_extension("live_grep_args")
 local cmp_autopairs = require('nvim-autopairs.completion.cmp')
 local cmp = require('cmp')
 cmp.setup({
-	snippet = {expand = function(args) vim.fn["vsnip#anonymous"](args.body) end},
+	snippet = {expand = function(args) require('luasnip').lsp_expand(args.body) end },
 	mapping = {
 		['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
 		['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
@@ -213,7 +213,7 @@ cmp.setup({
 		['<C-n>'] = cmp.mapping(cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }), { 'i', 'c' }),
 		['<C-p>'] = cmp.mapping(cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }), { 'i', 'c' }),
 	},
-	sources = cmp.config.sources({{name = 'nvim_lsp'}, {name = 'vsnip'}}, {{name = 'buffer'}})
+	sources = cmp.config.sources({{name = 'nvim_lsp'}, {name = 'luasnip'}}, {{name = 'buffer'}})
 })
 cmp.setup.cmdline('/', {sources = {{name = 'buffer'}}})
 cmp.setup.cmdline(':', {sources = cmp.config.sources({{name = 'path'}}, {{name = 'cmdline'}})})
@@ -256,24 +256,17 @@ function goimports(wait_ms)
 		end
 	end
 end
+require("gopher").setup()
 ----
 
 ----
 -- Debugging
 function start_debug() 
-	-- disable folding and autofold, otherwise errors occur
-	vim.api.nvim_create_augroup('HideImport', {clear=true})
-	vim.api.nvim_command('set nofoldenable')
 	require('dap.ext.vscode').load_launchjs('.vscode/launch.json')
 	require('dap').continue()
 	require('dapui').open()
 end
 function stop_debug() 
-	-- re-enable autofold
-	create_go_autofold()
-	vim.api.nvim_command('set foldenable')
-	-- folds everything by setting foldenable, unfold
-	vim.api.nvim_command('norm zR')
 	require('dap').close()
 	require('dapui').close()
 end
@@ -346,6 +339,7 @@ vim.api.nvim_create_autocmd('FileType',{
 		vim.cmd("abbrev errf if err != nil { return fmt.Errorf(\"%w\", err) }")
 		vim.cmd("abbrev errn if err != nil { return errors.New(\"\") }")
 		vim.opt_local.foldexpr = 'nvim_treesitter#foldexpr()'
+		map('n', '<leader>e', ':GoIfErr<CR>', false)
 	end,
 	pattern = 'go',
 })
@@ -358,19 +352,25 @@ vim.api.nvim_create_autocmd('BufWritePre', {
 	pattern = '*.go'
 })
 -- autocmd to fold imports when entering a file
-function create_go_autofold() 
-	vim.api.nvim_create_augroup('HideImport', {clear=true})
-	vim.api.nvim_create_autocmd({"BufReadPost"}, {
-		pattern = "*.go",
-		callback = function() 
+vim.api.nvim_create_autocmd({"BufReadPost"}, {
+	pattern = "*.go",
+	callback = function() 
+		local bufnr = vim.api.nvim_get_current_buf()
+
+		-- import list query
+		local root = vim.treesitter.get_parser(bufnr, "go"):parse()[1]:root()
+		local query = vim.treesitter.parse_query("go","(import_declaration (import_spec_list) @import)")
+
+		-- if there are matches, fold stuff
+		local _, found = query:iter_matches(root, buf)()
+		if found then 
 			-- zx is because telescope screws up some folds
 			vim.cmd("norm zxzRgg")
 			vim.cmd("/import (")
 			vim.cmd("norm zcgg")
-		end,
-	})
-end
-create_go_autofold()
+		end
+	end,
+})
 
 -- highlight on yank
 vim.api.nvim_create_autocmd('TextYankPost', {

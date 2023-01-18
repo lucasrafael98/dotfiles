@@ -2,7 +2,6 @@ export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
 
-source ~/Documents/Etc/env.sh
 source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/gitstatus.zsh
 source ~/.config/zsh/zsh-vi-mode/zsh-vi-mode.plugin.zsh
@@ -117,6 +116,7 @@ alias gb='fzf-git-checkout'
 alias redis="iredis --iredisrc $HOME/.config/iredis/rc"
 alias bat='batcat'
 alias sudo='doas'
+source ~/Documents/Etc/env.sh
 
 setopt PROMPT_SUBST
 # kitty doesn't make bold colors bright.
