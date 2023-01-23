@@ -325,8 +325,8 @@ vim.cmd("autocmd FileType json autocmd BufWritePre <buffer> %!jq . | head -c -1"
 vim.api.nvim_create_autocmd('FileType',{
 	callback = function()
 		vim.cmd("abbrev awsll λ")
-		vim.cmd("abbrev nnoremap <leader>xx 0f[lrx")
-		vim.cmd("abbrev nnoremap <leader>xa }bo- [ ] ")
+		vim.cmd("nnoremap <leader>xx 0f(lrx")
+		vim.cmd("nnoremap <leader>xa }bo- ( ) ")
 	end,
 	pattern = 'norg',
 })
