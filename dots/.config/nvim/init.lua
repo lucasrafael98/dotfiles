@@ -118,6 +118,7 @@ map('', '<C-l>', '<C-w>l', false)
 -- Packages/Misc
 require('nvim-autopairs').setup()
 require('nvim-web-devicons').setup()
+require('Comment').setup()
 
 require('neorg').setup{ load = {
 	["core.defaults"] = {},
@@ -230,7 +231,7 @@ vim.diagnostic.config({
 ----
 -- LSP Setup
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls'}
+local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls', 'tsserver'}
 for _, lsp in pairs(servers) do 
 	if lsp == 'gopls' then 
 		settings = { gopls = { gofumpt = true } }

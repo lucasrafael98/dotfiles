@@ -1,6 +1,7 @@
 export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_STATE_HOME="$HOME/.local/state"
 
 source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/gitstatus.zsh
@@ -27,6 +28,8 @@ export KDEHOME="$XDG_CONFIG_HOME"/kde
 export AWS_SHARED_CREDENTIALS_FILE="$XDG_CONFIG_HOME"/aws/credentials
 export AWS_CONFIG_FILE="$XDG_CONFIG_HOME"/aws/config
 export GNUPGHOME=$XDG_DATA_HOME/gnupg
+export GOTESTS_TEMPLATE_DIR=~/.config/gotests
+export XAUTHORITY="$XDG_RUNTIME_DIR"/Xauthority
 
 autoload bashcompinit && bashcompinit
 autoload -Uz compinit
@@ -43,7 +46,7 @@ unsetopt beep
 unsetopt extendedglob
 setopt histignorespace
 
-export PATH=$GOPATH/bin:~/.local/bin:~/.local/share/kafka/bin:$PATH
+export PATH=$GOPATH/bin:~/.local/bin:~/.local/share/kafka/bin:~/.local/share/npm/bin:$PATH
 export GOROOT=/usr/lib/go/
 . "$HOME/.local/share/cargo/env"
 

@@ -6,7 +6,7 @@ Plug 'ellisonleao/gruvbox.nvim'
 Plug 'romainl/vim-cool' " disable hlsearch when moving away from match
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
-Plug 'tpope/vim-commentary'
+Plug 'numToStr/Comment.nvim'
 Plug 'windwp/nvim-autopairs'
 Plug 'lewis6991/gitsigns.nvim' " gitgutter + blamer
 Plug 'kyazdani42/nvim-web-devicons' " pretty (and useless) icons
