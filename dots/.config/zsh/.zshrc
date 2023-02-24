@@ -7,8 +7,9 @@ source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/gitstatus.zsh
 source ~/.config/zsh/zsh-vi-mode/zsh-vi-mode.plugin.zsh
 source ~/.config/zsh/zsh-completions/zsh-completions.plugin.zsh
-zvm_after_init_commands+=('[ -f ~/.config/zsh/fzf-keybinds.zsh ] && source ~/.config/zsh/fzf-keybinds.zsh')
-zvm_after_init_commands+=('[ -f ~/.config/zsh/completion.zsh ] && source ~/.config/zsh/completion.zsh')
+source $HOME/.nix-profile/etc/profile.d/nix.sh
+zvm_after_init_commands+=('source /usr/share/doc/fzf/examples/completion.zsh')
+zvm_after_init_commands+=('source /usr/share/doc/fzf/examples/key-bindings.zsh')
 
 HISTFILE=~/.config/zsh/history
 HISTSIZE=100000000

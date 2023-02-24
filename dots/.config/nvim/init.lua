@@ -231,7 +231,7 @@ vim.diagnostic.config({
 ----
 -- LSP Setup
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls', 'tsserver'}
+local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls', 'tsserver', 'eslint'}
 for _, lsp in pairs(servers) do 
 	if lsp == 'gopls' then 
 		settings = { gopls = { gofumpt = true } }
@@ -335,10 +335,6 @@ vim.api.nvim_create_autocmd('FileType',{
 -- iferr abbreviations, folding
 vim.api.nvim_create_autocmd('FileType',{
 	callback = function() 
-		vim.cmd("abbrev iferr if err != nil { return nil, err }")
-		vim.cmd("abbrev erre if err != nil { return err }")
-		vim.cmd("abbrev errf if err != nil { return fmt.Errorf(\"%w\", err) }")
-		vim.cmd("abbrev errn if err != nil { return errors.New(\"\") }")
 		vim.opt_local.foldexpr = 'nvim_treesitter#foldexpr()'
 		map('n', '<leader>e', ':GoIfErr<CR>', false)
 	end,
@@ -351,6 +347,12 @@ vim.api.nvim_create_autocmd('BufWritePre', {
 		goimports(1000)
 	end,
 	pattern = '*.go'
+})
+vim.api.nvim_create_autocmd('BufWritePre', {
+	callback = function()
+		vim.lsp.buf.format({ async = true })
+	end,
+	pattern = '*.[a-z]s'
 })
 -- autocmd to fold imports when entering a file
 vim.api.nvim_create_autocmd({"BufReadPost"}, {
