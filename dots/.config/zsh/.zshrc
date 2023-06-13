@@ -29,7 +29,6 @@ export KDEHOME="$XDG_CONFIG_HOME"/kde
 export AWS_SHARED_CREDENTIALS_FILE="$XDG_CONFIG_HOME"/aws/credentials
 export AWS_CONFIG_FILE="$XDG_CONFIG_HOME"/aws/config
 export GNUPGHOME=$XDG_DATA_HOME/gnupg
-export GOTESTS_TEMPLATE_DIR=~/.config/gotests
 export XAUTHORITY="$XDG_RUNTIME_DIR"/Xauthority
 
 autoload bashcompinit && bashcompinit
@@ -48,7 +47,7 @@ unsetopt extendedglob
 setopt histignorespace
 
 export PATH=$GOPATH/bin:~/.local/bin:~/.local/share/kafka/bin:~/.local/share/npm/bin:$PATH
-export GOROOT=/usr/lib/go/
+export GOROOT=/usr/lib/go
 . "$HOME/.local/share/cargo/env"
 
 fzf-git-branch() {
@@ -120,6 +119,8 @@ alias gb='fzf-git-checkout'
 alias redis="iredis --iredisrc $HOME/.config/iredis/rc"
 alias bat='batcat'
 alias sudo='doas'
+alias jqc='jq --color-output'
+alias lessc='less -R'
 source ~/Documents/Etc/env.sh
 
 setopt PROMPT_SUBST

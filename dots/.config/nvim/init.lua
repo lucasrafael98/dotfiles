@@ -122,10 +122,10 @@ require('Comment').setup()
 
 require('neorg').setup{ load = {
 	["core.defaults"] = {},
-	["core.norg.concealer"] = { config = { folds = false } },
+	["core.concealer"] = { config = { folds = false } },
 	["core.export"] = {},
 	["core.export.markdown"] = {},
-	["core.norg.dirman"] = {
+	["core.dirman"] = {
 		config = { workspaces = { work = "~/Documents/Notes" } }
 	},
 } }
@@ -231,7 +231,7 @@ vim.diagnostic.config({
 ----
 -- LSP Setup
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls', 'tsserver', 'eslint'}
+local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls', 'tsserver', 'eslint', 'terraformls'}
 for _, lsp in pairs(servers) do 
 	if lsp == 'gopls' then 
 		settings = { gopls = { gofumpt = true } }
@@ -297,7 +297,15 @@ require("dapui").setup({
 		},
 	},
 })
-require('dap-go').setup()
+require('dap-go').setup {
+  dap_configurations = {
+      type = "go",
+      name = "Attach remote",
+      mode = "remote",
+      request = "attach",
+  },
+  delve = { path = "dlv" },
+}
 ----
 
 ----
@@ -350,7 +358,7 @@ vim.api.nvim_create_autocmd('BufWritePre', {
 })
 vim.api.nvim_create_autocmd('BufWritePre', {
 	callback = function()
-		vim.lsp.buf.format({ async = true })
+		vim.lsp.buf.format({ async = false })
 	end,
 	pattern = '*.[a-z]s'
 })
@@ -362,7 +370,7 @@ vim.api.nvim_create_autocmd({"BufReadPost"}, {
 
 		-- import list query
 		local root = vim.treesitter.get_parser(bufnr, "go"):parse()[1]:root()
-		local query = vim.treesitter.parse_query("go","(import_declaration (import_spec_list) @import)")
+		local query = vim.treesitter.query.parse("go","(import_declaration (import_spec_list) @import)")
 
 		-- if there are matches, fold stuff
 		local _, found = query:iter_matches(root, buf)()
