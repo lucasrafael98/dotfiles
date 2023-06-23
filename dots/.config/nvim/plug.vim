@@ -3,9 +3,9 @@ Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-lua/popup.nvim'
 
 Plug 'ellisonleao/gruvbox.nvim'
-Plug 'romainl/vim-cool' " disable hlsearch when moving away from match
 Plug 'tpope/vim-surround'
-Plug 'tpope/vim-fugitive'
+Plug 'TimUntersberger/neogit'
+Plug 'sindrets/diffview.nvim'
 Plug 'numToStr/Comment.nvim'
 Plug 'windwp/nvim-autopairs'
 Plug 'lewis6991/gitsigns.nvim' " gitgutter + blamer
@@ -39,8 +39,7 @@ Plug 'mfussenegger/nvim-dap'
 Plug 'rcarriga/nvim-dap-ui'
 Plug 'leoluz/nvim-dap-go'
 
-Plug 'nvim-neorg/neorg'
-Plug 'mhinz/vim-startify' " useless startup screen
+Plug 'startup-nvim/startup.nvim' " useless startup screen
 
 " language specifics
 Plug 'fatih/vim-go'

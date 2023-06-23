@@ -17,7 +17,6 @@ vim.opt.list = true
 vim.opt.formatoptions = 'l'
 vim.opt.fixendofline = false -- don't add \n on eof
 vim.opt.cursorline = true
-vim.opt.colorcolumn = "110"
 vim.opt.textwidth = 110
 vim.opt.wrap = true
 vim.opt.linebreak = true
@@ -29,7 +28,6 @@ vim.opt.backspace = 'indent,eol,start' -- better backspace
 vim.opt.backup = false -- no annoying files
 vim.opt.swapfile = false -- see above 
 vim.opt.showmode = false -- mode is shown by the fancy line
-vim.opt.conceallevel = 2 -- for neorg
 vim.opt.foldmethod = 'expr'
 vim.opt.updatetime = 20
 vim.opt.title = true
@@ -67,10 +65,9 @@ map('n', '<leader>}', 'va{<Esc>%i<CR><Esc>%a<CR><ESC>kva{:!jq -c<CR>kJJ', true)
 -- quickly access files
 map('n', '<leader>vv', ':e ~/.config/nvim/init.lua<CR>', true)
 map('n', '<leader>vl', ':e ~/.config/nvim/plug.vim<CR>', true)
-map('n', '<leader>ww', ':tabnew<CR>:Neorg workspace work<CR>', true)
 --misc
-map('n', '<leader>gg', ':Git<CR>15<C-W>-', true) -- git status, lower height
-map('n', '<leader>gv', ':Gvdiffsplit<CR>', true)
+map('n', '<leader>gg', ':Neogit<CR>', true) -- git status, lower height
+map('n', '<leader>gv', ':DiffviewOpen<CR>', true)
 map('n', '<leader>gp', ':Gitsigns preview_hunk<CR>', true)
 map('n', '<leader>gt', ':GoTestFunc<CR>', true)
 map('n', '<leader>gc', ':GoCoverageToggle<CR>', true)
@@ -112,6 +109,8 @@ map('', '<C-h>', '<C-w>h', false)
 map('', '<C-j>', '<C-w>j', false)
 map('', '<C-k>', '<C-w>k', false)
 map('', '<C-l>', '<C-w>l', false)
+-- map incr to ctrl+s so it doesn't interfere with kitty
+map('', '<C-s>', '<C-a>', false)
 ----
 
 ----
@@ -120,21 +119,18 @@ require('nvim-autopairs').setup()
 require('nvim-web-devicons').setup()
 require('Comment').setup()
 
-require('neorg').setup{ load = {
-	["core.defaults"] = {},
-	["core.concealer"] = { config = { folds = false } },
-	["core.export"] = {},
-	["core.export.markdown"] = {},
-	["core.dirman"] = {
-		config = { workspaces = { work = "~/Documents/Notes" } }
-	},
-} }
 require('gitsigns').setup{
 	current_line_blame = true,
 	current_line_blame_opts = {delay = 0},
 	current_line_blame_formatter_opts = {relative_time = true}, 
 	current_line_blame_formatter = '\t\t<author>, <author_time> • <summary>',
 	preview_config = {border = 'none'},
+}
+require('diffview').setup {
+	enhanced_diff_hl = true,
+}
+require('neogit').setup {
+	integrations = { diffview = true }
 }
 require('lsp_signature').setup({ hint_enable = false, handler_opts = {border = "none"} })
 require('lualine').setup {
@@ -231,7 +227,7 @@ vim.diagnostic.config({
 ----
 -- LSP Setup
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls', 'tsserver', 'eslint', 'terraformls'}
+local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls', 'tsserver', 'eslint', 'terraformls', 'jsonls'}
 for _, lsp in pairs(servers) do 
 	if lsp == 'gopls' then 
 		settings = { gopls = { gofumpt = true } }
@@ -328,17 +324,9 @@ vim.api.nvim_create_autocmd('BufReadPost,FileReadPost',{
 	pattern = '*',
 })
 
+
 -- format json on save - TODO: doesn't work on proper lua
 vim.cmd("autocmd FileType json autocmd BufWritePre <buffer> %!jq . | head -c -1")
-
-vim.api.nvim_create_autocmd('FileType',{
-	callback = function()
-		vim.cmd("abbrev awsll λ")
-		vim.cmd("nnoremap <leader>xx 0f(lrx")
-		vim.cmd("nnoremap <leader>xa }bo- ( ) ")
-	end,
-	pattern = 'norg',
-})
 
 -- iferr abbreviations, folding
 vim.api.nvim_create_autocmd('FileType',{
@@ -391,6 +379,14 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   group = vim.api.nvim_create_augroup('YankHighlight', { clear = true }),
   pattern = '*',
 })
+
+-- Disable highlight after searching
+vim.on_key(function(char)
+	if vim.fn.mode() == "n" then
+		local new_hlsearch = vim.tbl_contains({ "<CR>", "n", "N", "*", "#", "?", "/" }, vim.fn.keytrans(char))
+		if vim.opt.hlsearch:get() ~= new_hlsearch then vim.opt.hlsearch = new_hlsearch end
+	end
+end, vim.api.nvim_create_namespace "auto_hlsearch")
 ----
 
 -- Colour
@@ -406,3 +402,42 @@ vim.cmd.colorscheme("gruvbox")
 -- make treesitter not turn some chars orange because it looks terrible
 vim.cmd("hi link Delimiter none")
 vim.cmd("hi GitSignsCurrentLineBlame guifg=grey")
+
+require("startup").setup({
+    header = {
+        type = "text",
+        align = "center",
+        title = "Header",
+        margin = 5,
+        content = require("startup.headers").hydra_header,
+        highlight = "Statement",
+    },
+    header_2 = {
+        type = "text",
+        align = "center",
+        title = "Quote",
+        margin = 5,
+        content = require("startup.functions").quote(),
+        highlight = "Constant",
+    },
+    body = {
+        type = "mapping",
+        align = "center",
+        title = "Basic Commands",
+        margin = 5,
+        content = {
+            { " Find File", "Telescope find_files", "<leader>ff" },
+            { " Find Word", "Telescope live_grep", "<leader>lg" },
+            { " Recent Files", "Telescope oldfiles", "<leader>of" },
+            { " File Browser", ":NvimTreeToggle", "<leader>fb" },
+            { " Edit Empty", ":enew", "e" },
+			{ " Exit", ":qa!", "q"}
+        },
+        highlight = "String",
+    },
+    options = {
+        disable_statuslines = true,
+        paddings = { 12, 3, 3, 0 },
+    },
+    parts = { "header", "header_2", "body" },
+})
