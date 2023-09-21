@@ -76,6 +76,8 @@ map('n', '<C-p>', ':Telescope find_files find_command=rg,--files,--hidden,--no-i
 map('n', '<C-g>', ':lua require("telescope").extensions.live_grep_args.live_grep_args()<CR>', true)
 map('n', '<C-n>', ':NvimTreeToggle<CR>', true)
 map('n', '<C-f>', ':NvimTreeFindFile<CR>', true)
+map('n', '<leader><leader>', ':Telescope resume<CR>', true)
+map('n', '<leader>of', ':Telescope oldfiles<CR>', true)
 map('n', '<leader>t', ':tabnew<CR>', true)
 map('n', '<leader>zr', ':set foldmethod=expr<CR>zR', true) -- enable folding but don't close any folds
 -- lsp
@@ -138,7 +140,7 @@ require('lualine').setup {
 	sections = {
 		lualine_a = {'mode'},
 		lualine_b = {'filename', 'diagnostics'},
-		lualine_c = {'branch'},
+		lualine_c = {{'branch', icon = {''}}},
 		lualine_x = {'encoding', 'fileformat'},
 		lualine_y = {'filetype'},
 		lualine_z = {'location'}
@@ -317,6 +319,14 @@ for _, lang in pairs({"json", "yaml", "toml", "html", "css"}) do
 		end
 	})
 end
+vim.api.nvim_create_autocmd({"FileType"},{
+	pattern = "cucumber",
+	callback = function() 
+		vim.opt_local.expandtab = true 
+		vim.opt_local.shiftwidth = 4
+		vim.opt_local.tabstop = 4
+	end
+})
 
 -- don't fold everything by default
 vim.api.nvim_create_autocmd('BufReadPost,FileReadPost',{
