@@ -1,2 +1,4 @@
 dots/.config/zsh/**
 dots/.config/kitty/**
+dots/.config/git/work.gitconfig
+dots/.config/nvim/ftplugin

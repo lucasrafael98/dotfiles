@@ -1,4 +1,5 @@
 ----
+--
 -- Vim options
 vim.g.mapleader = ' '
 
@@ -35,7 +36,12 @@ vim.opt.titlestring = [[nvim: %f]]
 vim.opt.listchars = { space = ' ', tab = '⡀ ' }
 ----
 
--- Mostly plugins
+-- autoinstall vim-plug if on a fresh machine
+if (vim.fn.isdirectory(os.getenv('HOME') .. '/.local/share/nvim/site/autoload') == 0) then
+	os.execute("sh -c 'curl -fLo \"${XDG_DATA_HOME:-$HOME/.local/share}\"/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'")
+end
+
+-- mostly loading plugins with vim-plug
 vim.cmd('source ~/.config/nvim/plug.vim')
 
 ----
@@ -72,7 +78,8 @@ map('n', '<leader>gp', ':Gitsigns preview_hunk<CR>', true)
 map('n', '<leader>gt', ':GoTestFunc<CR>', true)
 map('n', '<leader>gc', ':GoCoverageToggle<CR>', true)
 map('v', '<leader>ga', ':GoAddTags<CR>', true)
-map('n', '<C-p>', ':Telescope find_files find_command=rg,--files,--hidden,--no-ignore,-g,!.git<cr>', true)
+map('n', '<C-p>', ':Telescope find_files find_command=rg,--files,-.,-g,!.git<cr>', true)
+map('n', '<leader><C-p>', ':Telescope find_files find_command=rg,--files,-.,--no-ignore<cr>', true)
 map('n', '<C-g>', ':lua require("telescope").extensions.live_grep_args.live_grep_args()<CR>', true)
 map('n', '<C-n>', ':NvimTreeToggle<CR>', true)
 map('n', '<C-f>', ':NvimTreeFindFile<CR>', true)
@@ -120,6 +127,12 @@ map('', '<C-s>', '<C-a>', false)
 require('nvim-autopairs').setup()
 require('nvim-web-devicons').setup()
 require('Comment').setup()
+require('mason').setup()
+require('nvim-ts-autotag').setup({
+	autotag = {
+		filetypes = { 'xml', 'html', 'typescriptreact' }
+	}
+})
 
 require('gitsigns').setup{
 	current_line_blame = true,
@@ -162,7 +175,10 @@ require('nvim-tree').setup({
 	}
 })
 require('nvim-treesitter.configs').setup({
-	ensure_installed = {'cpp', 'go', 'lua', 'query', 'scheme', 'sql', 'yaml', 'json', 'html', 'css', 'rust', 'vim'},
+	ensure_installed = {
+		'cpp', 'go', 'lua', 'query', 'scheme', 'sql', 'yaml', 'json',
+		'html', 'css', 'rust', 'vim', 'typescript', 'tsx', 'graphql', 'terraform'
+	},
 	highlight = { enable = true },
 	textobjects = {
 		select = {
@@ -229,13 +245,20 @@ vim.diagnostic.config({
 ----
 -- LSP Setup
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls', 'tsserver', 'eslint', 'terraformls', 'jsonls'}
+local servers = {'pyright', 'rust_analyzer', 'gopls', 'golangci_lint_ls', 'tsserver', 'terraformls', 'jsonls', 'cssls'}
 for _, lsp in pairs(servers) do 
 	if lsp == 'gopls' then 
 		settings = { gopls = { gofumpt = true } }
 	end
 	require('lspconfig')[lsp].setup({ settings = settings, capabilities=capabilities})
 end
+require('lspconfig')['eslint'].setup({ root_dir = require('lspconfig').util.root_pattern(".git", "package.json") })
+
+require("null-ls").setup({
+	sources = {
+		require("null-ls").builtins.formatting.prettierd
+	}
+})
 ----
 
 ----
@@ -309,7 +332,7 @@ require('dap-go').setup {
 ----
 -- Autocmds
 -- set local buffer to use two space indent in below langs
-for _, lang in pairs({"json", "yaml", "toml", "html", "css"}) do 
+for _, lang in pairs({"json", "yaml", "toml", "html", "css", "typescriptreact", "typescript"}) do 
 	vim.api.nvim_create_autocmd({"FileType"},{
 		pattern = lang,
 		callback = function() 
@@ -328,15 +351,15 @@ vim.api.nvim_create_autocmd({"FileType"},{
 	end
 })
 
--- don't fold everything by default
-vim.api.nvim_create_autocmd('BufReadPost,FileReadPost',{
-	callback = function() vim.cmd("norm zR") end,
-	pattern = '*',
-})
-
-
 -- format json on save - TODO: doesn't work on proper lua
 vim.cmd("autocmd FileType json autocmd BufWritePre <buffer> %!jq . | head -c -1")
+
+vim.api.nvim_create_autocmd('BufWritePost',{
+	callback = function() 
+		vim.lsp.buf.format({ async = true })
+	end,
+	pattern = '*.js,*.ts,*.css,*.tsx',
+})
 
 -- iferr abbreviations, folding
 vim.api.nvim_create_autocmd('FileType',{
@@ -353,12 +376,6 @@ vim.api.nvim_create_autocmd('BufWritePre', {
 		goimports(1000)
 	end,
 	pattern = '*.go'
-})
-vim.api.nvim_create_autocmd('BufWritePre', {
-	callback = function()
-		vim.lsp.buf.format({ async = false })
-	end,
-	pattern = '*.[a-z]s'
 })
 -- autocmd to fold imports when entering a file
 vim.api.nvim_create_autocmd({"BufReadPost"}, {
@@ -412,42 +429,3 @@ vim.cmd.colorscheme("gruvbox")
 -- make treesitter not turn some chars orange because it looks terrible
 vim.cmd("hi link Delimiter none")
 vim.cmd("hi GitSignsCurrentLineBlame guifg=grey")
-
-require("startup").setup({
-    header = {
-        type = "text",
-        align = "center",
-        title = "Header",
-        margin = 5,
-        content = require("startup.headers").hydra_header,
-        highlight = "Statement",
-    },
-    header_2 = {
-        type = "text",
-        align = "center",
-        title = "Quote",
-        margin = 5,
-        content = require("startup.functions").quote(),
-        highlight = "Constant",
-    },
-    body = {
-        type = "mapping",
-        align = "center",
-        title = "Basic Commands",
-        margin = 5,
-        content = {
-            { " Find File", "Telescope find_files", "<leader>ff" },
-            { " Find Word", "Telescope live_grep", "<leader>lg" },
-            { " Recent Files", "Telescope oldfiles", "<leader>of" },
-            { " File Browser", ":NvimTreeToggle", "<leader>fb" },
-            { " Edit Empty", ":enew", "e" },
-			{ " Exit", ":qa!", "q"}
-        },
-        highlight = "String",
-    },
-    options = {
-        disable_statuslines = true,
-        paddings = { 12, 3, 3, 0 },
-    },
-    parts = { "header", "header_2", "body" },
-})

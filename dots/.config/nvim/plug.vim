@@ -8,6 +8,7 @@ Plug 'TimUntersberger/neogit'
 Plug 'sindrets/diffview.nvim'
 Plug 'numToStr/Comment.nvim'
 Plug 'windwp/nvim-autopairs'
+Plug 'windwp/nvim-ts-autotag'
 Plug 'lewis6991/gitsigns.nvim' " gitgutter + blamer
 Plug 'kyazdani42/nvim-web-devicons' " pretty (and useless) icons
 Plug 'kyazdani42/nvim-tree.lua' " muh vim ide, part 1
@@ -39,12 +40,14 @@ Plug 'mfussenegger/nvim-dap'
 Plug 'rcarriga/nvim-dap-ui'
 Plug 'leoluz/nvim-dap-go'
 
-Plug 'startup-nvim/startup.nvim' " useless startup screen
+Plug 'williamboman/mason.nvim'
+Plug 'nvimtools/none-ls.nvim'
 
 " language specifics
 Plug 'fatih/vim-go'
 Plug 'olexsmir/gopher.nvim'
 Plug 'rust-lang/rust.vim'
+Plug 'mfussenegger/nvim-jdtls'
 call plug#end()
 
 let g:rustfmt_autosave = 1
