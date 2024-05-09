@@ -30,13 +30,8 @@ if [ "$LR_SYSTEM" = "mac" ]; then
 	export PATH=/opt/homebrew/bin:$PATH
 	export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
 	. /opt/homebrew/opt/asdf/libexec/asdf.sh
-	source /opt/homebrew/share/antigen/antigen.zsh
-	antigen bundle robbyrussell/oh-my-zsh plugins/aws
-	antigen bundle zsh-users/zsh-syntax-highlighting
-	antigen bundle jeffreytse/zsh-vi-mode
-	antigen bundle zsh-users/zsh-completions
-	antigen bundle lucasrafael98/zsh-git-funcs
-	antigen apply
+	source $HOME/.antidote/antidote.zsh
+	antidote load $HOME/.zsh_plugins.txt
 	zvm_after_init_commands+=('source /opt/homebrew/opt/fzf/shell/completion.zsh')
 	zvm_after_init_commands+=('source /opt/homebrew/opt/fzf/shell/key-bindings.zsh')
 elif [ "$LR_SYSTEM" = "linux" ]; then
@@ -61,8 +56,6 @@ zstyle :compinstall filename '/home/jlr/.zshrc'
 complete -C aws_completer aws
 eval "$(zoxide init zsh)"
 eval "$(direnv hook zsh)"
-source <(docker completion zsh)
-rm -f $HOME/.zcompdump
 
 # make tab completion case-insensitive
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
@@ -70,6 +63,13 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 unsetopt beep 
 unsetopt extendedglob
 setopt histignorespace
+
+# lazy load docker completion because it takes like 50ms
+function docker() {
+	unfunction "$0"
+	source <(docker completion zsh)
+	docker $@
+}
 
 # https://github.com/romkatv/powerlevel10k/issues/1092#issuecomment-723039693
 # Display $1 in terminal title.
