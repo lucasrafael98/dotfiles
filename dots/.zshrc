@@ -30,10 +30,11 @@ if [ "$LR_SYSTEM" = "mac" ]; then
 	export PATH=/opt/homebrew/bin:$PATH
 	export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
 	. /opt/homebrew/opt/asdf/libexec/asdf.sh
-	source $HOME/.antidote/antidote.zsh
+	source $(brew --prefix)/opt/antidote/share/antidote/antidote.zsh
 	antidote load $HOME/.zsh_plugins.txt
 	zvm_after_init_commands+=('source /opt/homebrew/opt/fzf/shell/completion.zsh')
 	zvm_after_init_commands+=('source /opt/homebrew/opt/fzf/shell/key-bindings.zsh')
+	export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
 elif [ "$LR_SYSTEM" = "linux" ]; then
 	export CARGO_HOME="$XDG_DATA_HOME"/cargo
 	export RUSTUP_HOME="$XDG_DATA_HOME"/rustup
@@ -55,7 +56,6 @@ compinit -d $HOME/.config/zsh/zcompdump
 zstyle :compinstall filename '/home/jlr/.zshrc'
 complete -C aws_completer aws
 eval "$(zoxide init zsh)"
-eval "$(direnv hook zsh)"
 
 # make tab completion case-insensitive
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
@@ -99,8 +99,8 @@ add-zsh-hook precmd set-term-title-precmd
 alias rm='rm -i'
 alias mv='mv -i'
 alias mkdir='mkdir -pv'
-alias ls='exa'
-alias la='exa -la'
+alias ls='eza'
+alias la='eza -la'
 alias v='nvim'
 alias sv='sudo nvim'
 alias jsed="sed -E 's/^\\\"|\\\\|\\\"$//g'"

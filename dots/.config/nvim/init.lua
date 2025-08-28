@@ -125,7 +125,6 @@ require('nvim-ts-autotag').setup({
 require('gitsigns').setup{
 	current_line_blame = true,
 	current_line_blame_opts = {delay = 0},
-	current_line_blame_formatter_opts = {relative_time = true}, 
 	current_line_blame_formatter = '\t\t<author>, <author_time> • <summary>',
 	preview_config = {border = 'none'},
 }
@@ -233,7 +232,7 @@ vim.diagnostic.config({
 ----
 -- LSP Setup
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-local servers = {'pyright', 'rust_analyzer', 'golangci_lint_ls', 'tsserver', 'terraformls', 'jsonls', 'cssls', 'kotlin_language_server'}
+local servers = {'pyright', 'rust_analyzer', 'golangci_lint_ls', 'ts_ls', 'terraformls', 'jsonls', 'cssls', 'kotlin_language_server'}
 for _, lsp in pairs(servers) do 
 	require('lspconfig')[lsp].setup({ settings = settings, capabilities=capabilities})
 end
