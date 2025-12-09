@@ -6,7 +6,8 @@
   (selector_expression
 	field: (field_identifier) @_field (#match? @_field "(Query(Row)?|Exec)Context?"))
   (argument_list
-	(raw_string_literal) @sql (#offset! @sql 0 1 0 -1))
+	(raw_string_literal
+		(raw_string_literal_content) @injection.content (#set! injection.language "sql")))
 )
 
 ; database/sql query, but there's an fmt.Sprintf()
@@ -16,8 +17,18 @@
   (argument_list
 	(call_expression
 	  (argument_list
-		(raw_string_literal) @sql (#offset! @sql 0 1 0 -1))))
+		(raw_string_literal
+			(raw_string_literal_content) @injection.content (#set! injection.language "sql")))))
 )
+
+; gorm raw queries 
+(call_expression
+  (selector_expression
+	field: (field_identifier) @_field (#match? @_field "(Raw|Exec)"))
+  (argument_list
+	(raw_string_literal
+		(raw_string_literal_content) @injection.content (#set! injection.language "sql")))
+  )
 
 ; for the occasional case where queries are concatenated, not perfect
 ((raw_string_literal) @sql 

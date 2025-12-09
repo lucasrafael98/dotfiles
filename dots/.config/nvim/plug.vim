@@ -35,7 +35,10 @@ Plug 'nvim-treesitter/playground'
 Plug 'nvim-telescope/telescope-live-grep-args.nvim'
 Plug 'knubie/vim-kitty-navigator', {'do': 'cp ./*.py ~/.config/kitty/'}
 
+Plug 'supermaven-inc/supermaven-nvim'
+
 " debugging
+Plug 'nvim-neotest/nvim-nio'
 Plug 'mfussenegger/nvim-dap'
 Plug 'rcarriga/nvim-dap-ui'
 Plug 'leoluz/nvim-dap-go'
@@ -48,6 +51,7 @@ Plug 'fatih/vim-go'
 Plug 'olexsmir/gopher.nvim'
 Plug 'rust-lang/rust.vim'
 Plug 'mfussenegger/nvim-jdtls'
+Plug 'towolf/vim-helm'
 call plug#end()
 
 let g:rustfmt_autosave = 1

@@ -29,7 +29,6 @@ vim.opt.backspace = 'indent,eol,start' -- better backspace
 vim.opt.backup = false -- no annoying files
 vim.opt.swapfile = false -- see above 
 vim.opt.showmode = false -- mode is shown by the fancy line
-vim.opt.foldmethod = 'expr'
 vim.opt.updatetime = 20
 vim.opt.title = true
 vim.opt.titlestring = [[nvim: %t]]
@@ -101,11 +100,6 @@ map('', '<A-l>', '5<C-W>>', true)
 map('', '<A-h>', '5<C-W><', true)
 map('', '<A-k>', '5<C-W>+', true)
 map('', '<A-j>', '5<C-W>-', true)
--- faster split navigation
-map('', '<C-h>', '<C-w>h', false)
-map('', '<C-j>', '<C-w>j', false)
-map('', '<C-k>', '<C-w>k', false)
-map('', '<C-l>', '<C-w>l', false)
 -- map incr to ctrl+s so it doesn't interfere with kitty
 map('', '<C-s>', '<C-a>', false)
 ----
@@ -116,6 +110,7 @@ require('nvim-autopairs').setup()
 require('nvim-web-devicons').setup()
 require('Comment').setup()
 require('mason').setup()
+require("supermaven-nvim").setup({})
 require('nvim-ts-autotag').setup({
 	autotag = {
 		filetypes = { 'xml', 'html', 'typescriptreact' }
@@ -147,7 +142,7 @@ require('lualine').setup {
 	},
 }
 require('nvim-tree').setup({
-	git = {enable = true, ignore = false, timeout = 0},
+	git = {enable = false, ignore = false, timeout = 0},
 	open_on_tab = true, view = { width = 35 },
 	renderer = { 
 		highlight_git = false,
@@ -164,7 +159,8 @@ require('nvim-tree').setup({
 require('nvim-treesitter.configs').setup({
 	ensure_installed = {
 		'cpp', 'go', 'lua', 'query', 'scheme', 'sql', 'yaml', 'json',
-		'html', 'css', 'rust', 'vim', 'typescript', 'tsx', 'graphql', 'terraform'
+		'html', 'css', 'rust', 'vim', 'typescript', 'tsx', 'graphql', 'terraform',
+		'python'
 	},
 	highlight = { enable = true },
 	textobjects = {
@@ -195,9 +191,19 @@ require("treesitter-context").setup({
 	},
 })
 
-require('telescope').setup({ defaults = { layout_config = {
-	horizontal = { width = 0.9, height = 0.9, preview_width = 0.5 }
-}}})
+require('telescope').setup({
+	defaults = { layout_config = {
+		horizontal = { width = 0.9, height = 0.9, preview_width = 0.5 }
+	},
+	pickers = {
+		live_grep = {
+			file_ignore_patterns = { 'node_modules', '.git/', '.venv' },
+			additional_args = function(_)
+				return { "--hidden" }
+			end
+		},
+	}
+}})
 require("telescope").load_extension("live_grep_args")
 
 -- Auto-complete
@@ -232,16 +238,145 @@ vim.diagnostic.config({
 ----
 -- LSP Setup
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-local servers = {'pyright', 'rust_analyzer', 'golangci_lint_ls', 'ts_ls', 'terraformls', 'jsonls', 'cssls', 'kotlin_language_server'}
+local servers = {'pyright', 'rust_analyzer', 'golangci_lint_ls', 'ts_ls', 'jsonls', 'cssls', 'kotlin_language_server', 'terraformls'}
 for _, lsp in pairs(servers) do 
-	require('lspconfig')[lsp].setup({ settings = settings, capabilities=capabilities})
+	vim.lsp.config(lsp, { settings = settings, capabilities=capabilities})
+	vim.lsp.enable(lsp)
 end
-require('lspconfig')['eslint'].setup({ root_dir = require('lspconfig').util.root_pattern(".git", "package.json") })
+vim.lsp.config('eslint', { root_dir = require('lspconfig').util.root_pattern(".git", "package.json") })
+vim.lsp.enable('eslint')
 
 require("null-ls").setup({
 	sources = {
 		require("null-ls").builtins.formatting.prettierd
 	}
+})
+----
+
+---- 
+-- Go 
+map('n', '<leader>gt', ':GoTestFunc<CR>', true)
+map('n', '<leader>gc', ':GoCoverageToggle<CR>', true)
+map('v', '<leader>ga', ':GoAddTags<CR>', true)
+map('n', '<leader>gd', ':lua require("dap-go").debug_test()<CR>', true)
+
+vim.lsp.config('gopls', { 
+	settings = { gopls = { gofumpt = true } },
+	capabilities =  require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+})
+vim.lsp.enable('gopls')
+
+-- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#neovim-imports
+function goimports(wait_ms)
+	local params = vim.lsp.util.make_range_params()
+	params.context = {only = {"source.organizeImports"}}
+	local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, wait_ms)
+	for _, res in pairs(result or {}) do
+		for _, r in pairs(res.result or {}) do
+			if r.edit then
+				vim.lsp.util.apply_workspace_edit(r.edit, "UTF-8")
+			else
+				vim.lsp.buf.execute_command(r.command)
+			end
+		end
+	end
+end
+require("gopher").setup()
+
+require("dapui").setup({
+	mappings = { expand = "o", open = "g" },
+	layouts = {
+		{
+			elements = {
+				{ id = "scopes", size = 0.8 },
+				{ id = "breakpoints", size = 0.2},
+			},
+			size = 40, position = "left",
+		},
+		{
+			elements = { "repl" },
+			size = 0.2,
+			position = "bottom",
+		},
+	},
+})
+require('dap-go').setup {
+  dap_configurations = {
+      type = "go",
+      name = "Attach remote",
+      mode = "remote",
+      request = "attach",
+  },
+  delve = { path = "dlv" },
+}
+
+----
+-- Debugging
+function start_debug() 
+	require('dap.ext.vscode').load_launchjs('.vscode/launch.json')
+	require('dap').continue()
+	require('dapui').open()
+end
+function stop_debug() 
+	require('dap').close()
+	require('dapui').close()
+end
+
+map('n', '<leader>gb', ':lua require("dapui").toggle()<CR>', true)
+map('n', '<leader>b', ':lua require("dap").toggle_breakpoint()<CR>', true)
+map('n', '<F3>', ':lua start_debug()<CR>', true)
+map('n', '<F4>', ':lua stop_debug()<CR>', true)
+map('n', '<F5>', ':lua require("dap").continue()<CR>', true)
+map('n', '<F10>', ':lua require("dap").step_over()<CR>', true)
+map('n', '<F11>', ':lua require("dap").step_into()<CR>', true)
+map('n', '<F12>', ':lua require("dap").step_out()<CR>', true)
+
+-- breakpoint signs
+vim.fn.sign_define('DapBreakpoint', 
+{ text = '', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
+vim.fn.sign_define('DapBreakpointCondition',
+{ text = 'ﳁ', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
+vim.fn.sign_define('DapBreakpointRejected',
+{ text = '', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
+vim.fn.sign_define('DapStopped', {text = ''}) -- disable the gutter sign, it's useless and jittery
+----
+
+-- iferr abbreviations, folding
+vim.api.nvim_create_autocmd('FileType',{
+	callback = function() 
+		vim.opt_local.foldexpr = 'nvim_treesitter#foldexpr()'
+		map('n', '<leader>e', ':GoIfErr<CR>', false)
+	end,
+	pattern = 'go',
+})
+-- format + goimports go on save
+vim.api.nvim_create_autocmd('BufWritePre', {
+	callback = function()
+		vim.lsp.buf.format({ async = true })
+		goimports(1000)
+	end,
+	pattern = '*.go'
+})
+-- autocmd to fold imports when entering a file
+vim.api.nvim_create_autocmd({"BufReadPost"}, {
+	pattern = "*.go",
+	callback = function() 
+		vim.opt.foldmethod = 'expr'
+		local bufnr = vim.api.nvim_get_current_buf()
+
+		-- import list query
+		local root = vim.treesitter.get_parser(bufnr, "go"):parse()[1]:root()
+		local query = vim.treesitter.query.parse("go","(import_declaration (import_spec_list) @import)")
+
+		-- if there are matches, fold stuff
+		local _, found = query:iter_matches(root, buf)()
+		if found then 
+			-- zx is because telescope screws up some folds
+			vim.cmd("norm zxzRgg")
+			vim.cmd("/import (")
+			vim.cmd("norm zcgg")
+		end
+	end,
 })
 ----
 

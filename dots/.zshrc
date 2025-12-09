@@ -16,7 +16,6 @@ export DOCKER_CONFIG="$XDG_CONFIG_HOME"/docker
 export GOPATH="$XDG_DATA_HOME"/go
 export AWS_SHARED_CREDENTIALS_FILE="$XDG_CONFIG_HOME"/aws/credentials
 export AWS_CONFIG_FILE="$XDG_CONFIG_HOME"/aws/config
-export GOROOT=/usr/lib/go
 export PATH=$GOPATH/bin:~/.local/bin:~/.local/share/kafka/bin:~/.local/share/npm/bin:/opt/homebrew/bin:$PATH
 
 if [ "$LR_SYSTEM" = "mac" ]; then
@@ -34,7 +33,7 @@ if [ "$LR_SYSTEM" = "mac" ]; then
 	antidote load $HOME/.zsh_plugins.txt
 	zvm_after_init_commands+=('source /opt/homebrew/opt/fzf/shell/completion.zsh')
 	zvm_after_init_commands+=('source /opt/homebrew/opt/fzf/shell/key-bindings.zsh')
-	export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
+	export GOROOT="$(brew --prefix golang)/libexec"
 elif [ "$LR_SYSTEM" = "linux" ]; then
 	export CARGO_HOME="$XDG_DATA_HOME"/cargo
 	export RUSTUP_HOME="$XDG_DATA_HOME"/rustup
@@ -48,17 +47,20 @@ elif [ "$LR_SYSTEM" = "linux" ]; then
 	zvm_after_init_commands+=('source /usr/share/doc/fzf/examples/completion.zsh')
 	zvm_after_init_commands+=('source /usr/share/doc/fzf/examples/key-bindings.zsh')
 	alias sudo='doas'
+	export GOROOT=/usr/lib/go
 fi
 
 autoload bashcompinit && bashcompinit
 autoload -Uz compinit
-compinit -d $HOME/.config/zsh/zcompdump
+compinit -u -d $HOME/.config/zsh/zcompdump
 zstyle :compinstall filename '/home/jlr/.zshrc'
 complete -C aws_completer aws
 eval "$(zoxide init zsh)"
 
 # make tab completion case-insensitive
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*:make:*:targets' call-command true
+zstyle ':completion:*:*:make:*' tag-order 'targets'
 
 unsetopt beep 
 unsetopt extendedglob
