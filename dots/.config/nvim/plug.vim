@@ -36,6 +36,7 @@ Plug 'nvim-telescope/telescope-live-grep-args.nvim'
 Plug 'knubie/vim-kitty-navigator', {'do': 'cp ./*.py ~/.config/kitty/'}
 
 Plug 'supermaven-inc/supermaven-nvim'
+Plug 'stevearc/conform.nvim'
 
 " debugging
 Plug 'nvim-neotest/nvim-nio'

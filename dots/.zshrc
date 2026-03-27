@@ -16,7 +16,7 @@ export DOCKER_CONFIG="$XDG_CONFIG_HOME"/docker
 export GOPATH="$XDG_DATA_HOME"/go
 export AWS_SHARED_CREDENTIALS_FILE="$XDG_CONFIG_HOME"/aws/credentials
 export AWS_CONFIG_FILE="$XDG_CONFIG_HOME"/aws/config
-export PATH=$GOPATH/bin:~/.local/bin:~/.local/share/kafka/bin:~/.local/share/npm/bin:/opt/homebrew/bin:$PATH
+export PATH=$GOPATH/bin:~/.local/bin:$PATH
 
 if [ "$LR_SYSTEM" = "mac" ]; then
 	# stop homebrew spying

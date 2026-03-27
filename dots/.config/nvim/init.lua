@@ -110,7 +110,11 @@ require('nvim-autopairs').setup()
 require('nvim-web-devicons').setup()
 require('Comment').setup()
 require('mason').setup()
-require("supermaven-nvim").setup({})
+require("supermaven-nvim").setup({
+	condition = function()
+		return string.match(vim.fn.expand("%"), "secrets")
+	end
+})
 require('nvim-ts-autotag').setup({
 	autotag = {
 		filetypes = { 'xml', 'html', 'typescriptreact' }
@@ -234,17 +238,44 @@ vim.diagnostic.config({
 	underline = true,
 })
 ----
+-- formatting
+require("conform").setup({
+  formatters_by_ft = {
+	  json = { "prettierd", "prettier", stop_after_first = true },
+  },
+  format_on_save = {
+    timeout_ms = 500,
+    lsp_format = "fallback",
+  },
+  notify_on_error = true,
+})
 
 ----
 -- LSP Setup
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-local servers = {'pyright', 'rust_analyzer', 'golangci_lint_ls', 'ts_ls', 'jsonls', 'cssls', 'kotlin_language_server', 'terraformls'}
+local servers = {'ruff', 'basedpyright', 'rust_analyzer', 'golangci_lint_ls', 'ts_ls', 'jsonls', 'cssls', 'kotlin_language_server', 'terraformls'}
 for _, lsp in pairs(servers) do 
 	vim.lsp.config(lsp, { settings = settings, capabilities=capabilities})
 	vim.lsp.enable(lsp)
 end
 vim.lsp.config('eslint', { root_dir = require('lspconfig').util.root_pattern(".git", "package.json") })
 vim.lsp.enable('eslint')
+vim.lsp.config('basedpyright', {
+	capabilities = capabilities,
+	settings = {
+		basedpyright = {
+			analysis = {
+				diagnosticSeverityOverrides = {
+					reportAny = "none",
+					reportUnusedCallResult = "none",
+					reportUnknownVariableType = "none",
+					reportImplicitOverride = "none",
+					reportMissingTypeStubs = "none",
+				},
+			}
+		}
+	}
+})
 
 require("null-ls").setup({
 	sources = {
@@ -401,9 +432,6 @@ vim.api.nvim_create_autocmd({"FileType"},{
 		vim.opt_local.tabstop = 4
 	end
 })
-
--- format json on save - TODO: doesn't work on proper lua
-vim.cmd("autocmd FileType json autocmd BufWritePre <buffer> %!jq .")
 
 vim.api.nvim_create_autocmd('BufWritePost',{
 	callback = function() 

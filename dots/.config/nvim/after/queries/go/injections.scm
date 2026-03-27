@@ -30,6 +30,17 @@
 		(raw_string_literal_content) @injection.content (#set! injection.language "sql")))
   )
 
+; gorm raw queries + sprintf
+(call_expression
+  (selector_expression
+	field: (field_identifier) @_field (#match? @_field "(Raw|Exec)"))
+  (argument_list
+	(call_expression
+	  (argument_list
+	    (raw_string_literal
+		  (raw_string_literal_content) @injection.content (#set! injection.language "sql")))))
+  )
+
 ; for the occasional case where queries are concatenated, not perfect
 ((raw_string_literal) @sql 
       (#contains? @sql "SELECT" "INSERT" "UPDATE" "DELETE" "CREATE" "ALTER") 
