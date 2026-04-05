@@ -100,6 +100,12 @@ map('', '<leader>y', '"+y', false) -- yank to OS clipboard
 map('', '<leader>Y', '"+y$', false) -- yank to OS clipboard
 map('n', '<leader>p', '"0p', false) -- paste last yank
 map('n', '<leader>P', '"0P', false) -- same as above
+-- vim-kitty-navigator 
+vim.g.kitty_navigator_no_mappings = 1
+map('n', '<C-h>', '<cmd>KittyNavigateLeft<cr>', true)
+map('n', '<C-j>', '<cmd>KittyNavigateDown<cr>', true)
+map('n', '<C-k>', '<cmd>KittyNavigateUp<cr>', true)
+map('n', '<C-l>', '<cmd>KittyNavigateRight<cr>', true)
 -- weird black magic
 -- do change command on visual selection, repeat change when pressing .
 map('v', '//', 'y/\\V<C-R>=escape(@",\'/\\\')<CR><CR>Ncgn', true)
