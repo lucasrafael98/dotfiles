@@ -33,18 +33,9 @@ vim.opt.updatetime = 20
 vim.opt.title = true
 vim.opt.titlestring = [[nvim: %t]]
 vim.opt.listchars = { space = ' ', tab = '⡀ ' }
+vim.opt.foldlevelstart = 99
 ----
 
--- autoinstall vim-plug if on a fresh machine
-if (vim.fn.isdirectory(os.getenv('HOME') .. '/.local/share/nvim/site/autoload') == 0) then
-	os.execute("sh -c 'curl -fLo \"${XDG_DATA_HOME:-$HOME/.local/share}\"/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'")
-end
-
--- mostly loading plugins with vim-plug
-vim.cmd('source ~/.config/nvim/plug.vim')
-
-----
--- Key Mapping
 local function map(mode, combo, cmd, noremap)
 	opts = {}
 	if noremap then 
@@ -52,6 +43,57 @@ local function map(mode, combo, cmd, noremap)
 	end
 	vim.api.nvim_set_keymap(mode, combo, cmd, opts)
 end
+
+
+-- quickly access files
+map('n', '<leader>vv', ':e ~/.config/nvim/init.lua<CR>', true)
+map('n', '<leader>vl', ':e ~/.config/nvim/plug.vim<CR>', true)
+
+vim.pack.add({
+	'https://github.com/neovim/nvim-lspconfig',
+	'https://github.com/nvim-lua/plenary.nvim',
+	'https://github.com/nvim-lua/popup.nvim',
+
+	'https://github.com/nvim-mini/mini.pairs',
+	'https://github.com/tpope/vim-surround',
+	'https://github.com/nvim-mini/mini.comment',
+
+	'https://github.com/kyazdani42/nvim-web-devicons',
+	'https://github.com/ellisonleao/gruvbox.nvim',
+	'https://github.com/sindrets/diffview.nvim',
+	'https://github.com/lewis6991/gitsigns.nvim',
+	'https://github.com/kyazdani42/nvim-tree.lua',
+	'https://github.com/nvim-lualine/lualine.nvim',
+
+	'https://github.com/hrsh7th/nvim-cmp',
+	'https://github.com/hrsh7th/cmp-nvim-lsp',
+	'https://github.com/hrsh7th/cmp-buffer',
+	'https://github.com/hrsh7th/cmp-path',
+	'https://github.com/hrsh7th/cmp-cmdline',
+	'https://github.com/L3MON4D3/LuaSnip',
+	'https://github.com/saadparwaiz1/cmp_luasnip',
+	'https://github.com/ray-x/lsp_signature.nvim',
+
+	'https://github.com/nvim-telescope/telescope.nvim',
+	'https://github.com/nvim-telescope/telescope-live-grep-args.nvim',
+
+	{ src = 'https://github.com/nvim-treesitter/nvim-treesitter', branch = 'main'},
+	'https://github.com/nvim-treesitter/nvim-treesitter-context',
+	'https://github.com/nvim-treesitter/nvim-treesitter-textobjects',
+
+	'https://github.com/kevinhwang91/promise-async',
+	'https://github.com/kevinhwang91/nvim-ufo',
+
+	'https://github.com/knubie/vim-kitty-navigator',
+
+	'https://github.com/supermaven-inc/supermaven-nvim',
+	'https://github.com/stevearc/conform.nvim',
+
+	'https://github.com/williamboman/mason.nvim',
+})
+
+----
+-- Key Mapping
 -- yank and paste
 map('n', 'Y', 'y$', false) -- replicate D and C
 map('', '<leader>y', '"+y', false) -- yank to OS clipboard
@@ -67,12 +109,7 @@ map('v', '/s', 'y:%s/<C-R>"//g<Left><Left>', true)
 map('n', '<leader>{', 'ya{P%a,<CR><Esc>', true)
 -- compact json field
 map('n', '<leader>}', 'va{<Esc>%i<CR><Esc>%a<CR><ESC>kva{:!jq -c<CR>kJJ', true)
---
--- quickly access files
-map('n', '<leader>vv', ':e ~/.config/nvim/init.lua<CR>', true)
-map('n', '<leader>vl', ':e ~/.config/nvim/plug.vim<CR>', true)
 --misc
-map('n', '<leader>gg', ':Neogit<CR>', true) -- git status, lower height
 map('n', '<leader>gv', ':DiffviewOpen<CR>', true)
 map('n', '<leader>gp', ':Gitsigns preview_hunk<CR>', true)
 map('n', '<C-p>', ':Telescope find_files find_command=rg,--files,-.,-g,!.git<cr>', true)
@@ -106,19 +143,22 @@ map('', '<C-s>', '<C-a>', false)
 
 ----
 -- Packages/Misc
-require('nvim-autopairs').setup()
+require('mini.pairs').setup()
+require('mini.comment').setup()
 require('nvim-web-devicons').setup()
-require('Comment').setup()
 require('mason').setup()
 require("supermaven-nvim").setup({
 	condition = function()
 		return string.match(vim.fn.expand("%"), "secrets")
 	end
 })
-require('nvim-ts-autotag').setup({
-	autotag = {
-		filetypes = { 'xml', 'html', 'typescriptreact' }
-	}
+
+require('ufo').setup({
+	provider_selector = function(bufnr, filetype, buftype)
+        return {'treesitter', 'indent'}
+    end,
+	-- hide imports on treesitter-enabled buffers
+	close_fold_kinds_for_ft = {default = {'import_declaration'}},
 })
 
 require('gitsigns').setup{
@@ -129,9 +169,6 @@ require('gitsigns').setup{
 }
 require('diffview').setup {
 	enhanced_diff_hl = true,
-}
-require('neogit').setup {
-	integrations = { diffview = true }
 }
 require('lsp_signature').setup({ hint_enable = false, handler_opts = {border = "none"} })
 require('lualine').setup {
@@ -160,31 +197,44 @@ require('nvim-tree').setup({
 		} 
 	}
 })
-require('nvim-treesitter.configs').setup({
-	ensure_installed = {
-		'cpp', 'go', 'lua', 'query', 'scheme', 'sql', 'yaml', 'json',
-		'html', 'css', 'rust', 'vim', 'typescript', 'tsx', 'graphql', 'terraform',
-		'python'
-	},
-	highlight = { enable = true },
-	textobjects = {
-		select = {
-			enable = true,
-			lookahead = true,
-			keymaps = {
-				['aa'] = '@parameter.outer',
-				['ia'] = '@parameter.inner',
-				['af'] = '@function.outer',
-				['if'] = '@function.inner',
-			},
-		},
-		swap = {
-			enable = true,
-			swap_next = { ['<leader>a'] = '@parameter.inner' },
-			swap_previous = { ['<leader>A'] = '@parameter.inner' },
-		}
-	}
+
+-- auto close
+local function is_modified_buffer_open(buffers)
+    for _, v in pairs(buffers) do
+        if v.name:match("NvimTree_") == nil then
+            return true
+        end
+    end
+    return false
+end
+
+vim.api.nvim_create_autocmd("BufEnter", {
+    nested = true,
+    callback = function()
+        if
+            #vim.api.nvim_list_wins() == 1
+            and vim.api.nvim_buf_get_name(0):match("NvimTree_") ~= nil
+            and is_modified_buffer_open(vim.fn.getbufinfo({ bufmodified = 1 })) == false
+        then
+            vim.cmd("quit")
+        end
+    end,
 })
+
+local treesitter_langs = {
+	'cpp', 'go', 'lua', 'query', 'scheme', 'sql', 'yaml', 'json', 'html', 'proto',
+	'css', 'rust', 'vim', 'typescript', 'tsx', 'graphql', 'terraform', 'python'
+}
+require('nvim-treesitter').setup({})
+require('nvim-treesitter').install(treesitter_langs)
+for _, lang in pairs(treesitter_langs) do 
+	vim.api.nvim_create_autocmd("FileType", {
+		pattern = lang,
+		callback = function() 
+			vim.treesitter.start()
+		end
+	})
+end
 require("treesitter-context").setup({
 	enable = true, 
 	throttle = true, 
@@ -211,7 +261,6 @@ require('telescope').setup({
 require("telescope").load_extension("live_grep_args")
 
 -- Auto-complete
-local cmp_autopairs = require('nvim-autopairs.completion.cmp')
 local cmp = require('cmp')
 cmp.setup({
 	snippet = {expand = function(args) require('luasnip').lsp_expand(args.body) end },
@@ -229,7 +278,6 @@ cmp.setup({
 })
 cmp.setup.cmdline('/', {sources = {{name = 'buffer'}}})
 cmp.setup.cmdline(':', {sources = cmp.config.sources({{name = 'path'}}, {{name = 'cmdline'}})})
-cmp.event:on('confirm_done', cmp_autopairs.on_confirm_done({map_char = {tex = ''}}))
 
 vim.diagnostic.config({
 	virtual_text = false,
@@ -241,7 +289,7 @@ vim.diagnostic.config({
 -- formatting
 require("conform").setup({
   formatters_by_ft = {
-	  json = { "prettierd", "prettier", stop_after_first = true },
+	  json = { "prettierd" },
   },
   format_on_save = {
     timeout_ms = 500,
@@ -258,8 +306,6 @@ for _, lsp in pairs(servers) do
 	vim.lsp.config(lsp, { settings = settings, capabilities=capabilities})
 	vim.lsp.enable(lsp)
 end
-vim.lsp.config('eslint', { root_dir = require('lspconfig').util.root_pattern(".git", "package.json") })
-vim.lsp.enable('eslint')
 vim.lsp.config('basedpyright', {
 	capabilities = capabilities,
 	settings = {
@@ -276,139 +322,6 @@ vim.lsp.config('basedpyright', {
 		}
 	}
 })
-
-require("null-ls").setup({
-	sources = {
-		require("null-ls").builtins.formatting.prettierd
-	}
-})
-----
-
----- 
--- Go 
-map('n', '<leader>gt', ':GoTestFunc<CR>', true)
-map('n', '<leader>gc', ':GoCoverageToggle<CR>', true)
-map('v', '<leader>ga', ':GoAddTags<CR>', true)
-map('n', '<leader>gd', ':lua require("dap-go").debug_test()<CR>', true)
-
-vim.lsp.config('gopls', { 
-	settings = { gopls = { gofumpt = true } },
-	capabilities =  require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-})
-vim.lsp.enable('gopls')
-
--- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#neovim-imports
-function goimports(wait_ms)
-	local params = vim.lsp.util.make_range_params()
-	params.context = {only = {"source.organizeImports"}}
-	local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, wait_ms)
-	for _, res in pairs(result or {}) do
-		for _, r in pairs(res.result or {}) do
-			if r.edit then
-				vim.lsp.util.apply_workspace_edit(r.edit, "UTF-8")
-			else
-				vim.lsp.buf.execute_command(r.command)
-			end
-		end
-	end
-end
-require("gopher").setup()
-
-require("dapui").setup({
-	mappings = { expand = "o", open = "g" },
-	layouts = {
-		{
-			elements = {
-				{ id = "scopes", size = 0.8 },
-				{ id = "breakpoints", size = 0.2},
-			},
-			size = 40, position = "left",
-		},
-		{
-			elements = { "repl" },
-			size = 0.2,
-			position = "bottom",
-		},
-	},
-})
-require('dap-go').setup {
-  dap_configurations = {
-      type = "go",
-      name = "Attach remote",
-      mode = "remote",
-      request = "attach",
-  },
-  delve = { path = "dlv" },
-}
-
-----
--- Debugging
-function start_debug() 
-	require('dap.ext.vscode').load_launchjs('.vscode/launch.json')
-	require('dap').continue()
-	require('dapui').open()
-end
-function stop_debug() 
-	require('dap').close()
-	require('dapui').close()
-end
-
-map('n', '<leader>gb', ':lua require("dapui").toggle()<CR>', true)
-map('n', '<leader>b', ':lua require("dap").toggle_breakpoint()<CR>', true)
-map('n', '<F3>', ':lua start_debug()<CR>', true)
-map('n', '<F4>', ':lua stop_debug()<CR>', true)
-map('n', '<F5>', ':lua require("dap").continue()<CR>', true)
-map('n', '<F10>', ':lua require("dap").step_over()<CR>', true)
-map('n', '<F11>', ':lua require("dap").step_into()<CR>', true)
-map('n', '<F12>', ':lua require("dap").step_out()<CR>', true)
-
--- breakpoint signs
-vim.fn.sign_define('DapBreakpoint', 
-{ text = '', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
-vim.fn.sign_define('DapBreakpointCondition',
-{ text = 'ﳁ', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
-vim.fn.sign_define('DapBreakpointRejected',
-{ text = '', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
-vim.fn.sign_define('DapStopped', {text = ''}) -- disable the gutter sign, it's useless and jittery
-----
-
--- iferr abbreviations, folding
-vim.api.nvim_create_autocmd('FileType',{
-	callback = function() 
-		vim.opt_local.foldexpr = 'nvim_treesitter#foldexpr()'
-		map('n', '<leader>e', ':GoIfErr<CR>', false)
-	end,
-	pattern = 'go',
-})
--- format + goimports go on save
-vim.api.nvim_create_autocmd('BufWritePre', {
-	callback = function()
-		vim.lsp.buf.format({ async = true })
-		goimports(1000)
-	end,
-	pattern = '*.go'
-})
--- autocmd to fold imports when entering a file
-vim.api.nvim_create_autocmd({"BufReadPost"}, {
-	pattern = "*.go",
-	callback = function() 
-		vim.opt.foldmethod = 'expr'
-		local bufnr = vim.api.nvim_get_current_buf()
-
-		-- import list query
-		local root = vim.treesitter.get_parser(bufnr, "go"):parse()[1]:root()
-		local query = vim.treesitter.query.parse("go","(import_declaration (import_spec_list) @import)")
-
-		-- if there are matches, fold stuff
-		local _, found = query:iter_matches(root, buf)()
-		if found then 
-			-- zx is because telescope screws up some folds
-			vim.cmd("norm zxzRgg")
-			vim.cmd("/import (")
-			vim.cmd("norm zcgg")
-		end
-	end,
-})
 ----
 
 ----
@@ -424,14 +337,6 @@ for _, lang in pairs({"json", "yaml", "toml", "html", "css", "typescriptreact", 
 		end
 	})
 end
-vim.api.nvim_create_autocmd({"FileType"},{
-	pattern = "cucumber",
-	callback = function() 
-		vim.opt_local.expandtab = true 
-		vim.opt_local.shiftwidth = 4
-		vim.opt_local.tabstop = 4
-	end
-})
 
 vim.api.nvim_create_autocmd('BufWritePost',{
 	callback = function() 
