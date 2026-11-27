@@ -4,7 +4,7 @@ vim.pack.add({
 })
 
 vim.api.nvim_set_keymap('n', '<leader>gt', ':GoTestFunc<CR>', { noremap = true })
-vim.api.nvim_set_keymap('n', '<leader>gc', ':GoCoverage<CR>', { noremap = true })
+vim.api.nvim_set_keymap('n', '<leader>gc', ':GoCoverage -p<CR>', { noremap = true })
 vim.api.nvim_set_keymap('v', '<leader>ga', ':GoAddTag<CR>', { noremap = true })
 
 vim.lsp.config('gopls', { 
@@ -22,7 +22,7 @@ vim.api.nvim_create_autocmd('FileType',{
 		vim.wo[0][0].foldexpr = 'v:lua.vim.treesitter.foldexpr()'
 		vim.wo[0][0].foldmethod = 'expr'
 		vim.opt.foldlevel = 99
-		map('n', '<leader>e', ':GoIfErr<CR>', false)
+		vim.api.nvim_set_keymap('n', '<leader>e', ':GoIfErr<CR>', { noremap = false })
 		vim.treesitter.start()
 	end,
 	pattern = 'go',

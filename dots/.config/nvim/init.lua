@@ -84,12 +84,18 @@ vim.pack.add({
 	'https://github.com/kevinhwang91/promise-async',
 	'https://github.com/kevinhwang91/nvim-ufo',
 
-	'https://github.com/knubie/vim-kitty-navigator',
-
 	'https://github.com/supermaven-inc/supermaven-nvim',
 	'https://github.com/stevearc/conform.nvim',
 
 	'https://github.com/williamboman/mason.nvim',
+
+	'https://github.com/towolf/vim-helm',
+
+	{
+		src = 'https://github.com/smart-splits-nvim/smart-splits.nvim',
+		version = vim.version.range('3'),
+	},
+	'https://github.com/smart-splits-nvim/backend-ghostty',
 })
 
 ----
@@ -100,12 +106,6 @@ map('', '<leader>y', '"+y', false) -- yank to OS clipboard
 map('', '<leader>Y', '"+y$', false) -- yank to OS clipboard
 map('n', '<leader>p', '"0p', false) -- paste last yank
 map('n', '<leader>P', '"0P', false) -- same as above
--- vim-kitty-navigator 
-vim.g.kitty_navigator_no_mappings = 1
-map('n', '<C-h>', '<cmd>KittyNavigateLeft<cr>', true)
-map('n', '<C-j>', '<cmd>KittyNavigateDown<cr>', true)
-map('n', '<C-k>', '<cmd>KittyNavigateUp<cr>', true)
-map('n', '<C-l>', '<cmd>KittyNavigateRight<cr>', true)
 -- weird black magic
 -- do change command on visual selection, repeat change when pressing .
 map('v', '//', 'y/\\V<C-R>=escape(@",\'/\\\')<CR><CR>Ncgn', true)
@@ -204,6 +204,27 @@ require('nvim-tree').setup({
 	}
 })
 
+require('smart-splits').setup({
+  mux = {
+    backend = 'smart-splits-backend-ghostty',
+  },
+  move = {
+    at_edge = 'stop',
+  },
+})
+
+local splits = require('smart-splits')
+
+vim.keymap.set('n', '<C-h>', splits.move_cursor_left)
+vim.keymap.set('n', '<C-j>', splits.move_cursor_down)
+vim.keymap.set('n', '<C-k>', splits.move_cursor_up)
+vim.keymap.set('n', '<C-l>', splits.move_cursor_right)
+
+vim.keymap.set('n', '<M-h>', splits.resize_left)
+vim.keymap.set('n', '<M-j>', splits.resize_down)
+vim.keymap.set('n', '<M-k>', splits.resize_up)
+vim.keymap.set('n', '<M-l>', splits.resize_right)
+
 -- auto close
 local function is_modified_buffer_open(buffers)
     for _, v in pairs(buffers) do
@@ -228,8 +249,8 @@ vim.api.nvim_create_autocmd("BufEnter", {
 })
 
 local treesitter_langs = {
-	'cpp', 'go', 'lua', 'query', 'scheme', 'sql', 'yaml', 'json', 'html', 'proto',
-	'css', 'rust', 'vim', 'typescript', 'tsx', 'graphql', 'terraform', 'python'
+	'cpp', 'go', 'lua', 'query', 'scheme', 'sql', 'yaml', 'json', 'html', 'proto', 'helm',
+	'css', 'rust', 'vim', 'typescript', 'tsx', 'graphql', 'terraform', 'python', 'gomod', 'gosum',
 }
 require('nvim-treesitter').setup({})
 require('nvim-treesitter').install(treesitter_langs)
@@ -319,6 +340,8 @@ vim.lsp.config('basedpyright', {
 			analysis = {
 				diagnosticSeverityOverrides = {
 					reportAny = "none",
+					reportExplicitAny = "none",
+					reportImplicitStringConcatenation = "none",
 					reportUnusedCallResult = "none",
 					reportUnknownVariableType = "none",
 					reportImplicitOverride = "none",

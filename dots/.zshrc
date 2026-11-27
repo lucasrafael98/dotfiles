@@ -28,12 +28,12 @@ if [ "$LR_SYSTEM" = "mac" ]; then
 	export HOMEBREW_REPOSITORY="/opt/homebrew";
 	export PATH=/opt/homebrew/bin:$PATH
 	export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
-	. /opt/homebrew/opt/asdf/libexec/asdf.sh
-	source $(brew --prefix)/opt/antidote/share/antidote/antidote.zsh
+	eval "$(mise activate zsh)"
+	source "$HOME/.antidote/antidote.zsh"
 	antidote load $HOME/.zsh_plugins.txt
 	zvm_after_init_commands+=('source /opt/homebrew/opt/fzf/shell/completion.zsh')
 	zvm_after_init_commands+=('source /opt/homebrew/opt/fzf/shell/key-bindings.zsh')
-	export GOROOT="$(brew --prefix golang)/libexec"
+	# export GOROOT="$(brew --prefix golang)/libexec"
 elif [ "$LR_SYSTEM" = "linux" ]; then
 	export CARGO_HOME="$XDG_DATA_HOME"/cargo
 	export RUSTUP_HOME="$XDG_DATA_HOME"/rustup
@@ -50,12 +50,12 @@ elif [ "$LR_SYSTEM" = "linux" ]; then
 	export GOROOT=/usr/lib/go
 fi
 
+zstyle :compinstall filename '$HOME/.zshrc'
 autoload bashcompinit && bashcompinit
 autoload -Uz compinit
 compinit -u -d $HOME/.config/zsh/zcompdump
-zstyle :compinstall filename '/home/jlr/.zshrc'
-complete -C aws_completer aws
 eval "$(zoxide init zsh)"
+eval "$(mise completion zsh)"
 
 # make tab completion case-insensitive
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
@@ -71,6 +71,12 @@ function docker() {
 	unfunction "$0"
 	source <(docker completion zsh)
 	docker $@
+}
+
+function kubectl() {
+	unfunction "$0"
+	source <(kubectl completion zsh)
+	kubectl $@
 }
 
 # https://github.com/romkatv/powerlevel10k/issues/1092#issuecomment-723039693
@@ -101,18 +107,16 @@ add-zsh-hook precmd set-term-title-precmd
 alias rm='rm -i'
 alias mv='mv -i'
 alias mkdir='mkdir -pv'
-alias ls='eza'
-alias la='eza -la'
-alias v='nvim'
-alias sv='sudo nvim'
+alias ls='eza || ls'
+alias la='eza -la || ls -la'
+alias v='nvim || vi'
+alias sv='sudo nvim || sudo vi'
 alias jsed="sed -E 's/^\\\"|\\\\|\\\"$//g'"
 alias b64e='base64 | xargs | tr -d " "'
 alias gb='fzf-git-checkout'
 alias redis="iredis --iredisrc $HOME/.config/iredis/rc"
-alias bat='batcat'
 alias jqc='jq --color-output'
 alias lessc='less -R'
-alias gw='./gradlew'
 
 setopt PROMPT_SUBST
 # kitty doesn't make bold colors bright.
@@ -127,3 +131,6 @@ fi
 
 autoload -U colors && colors
 PS1=$'%B${bgreen}lucasr%{\e[0m%}%b $logo %B$bblue%2~%{\e[0m%}%b$(gitstatus) %# '
+
+# opencode
+export PATH=/Users/lucasr_/.opencode/bin:$PATH
